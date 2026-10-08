@@ -1,0 +1,12 @@
+GNOME Shell 50.5 renderer validation
+Virtual display: 1280 x 720
+Backend: Blur.BlurEffect (GNOME Rounded Blur)
+Blur radius: 30, corner radius: 24
+Before fix, computed tint: #38383bff (opaque)
+After fix, computed tint: #38383b4c (30% opacity)
+Stripe contrast (grayscale standard deviation at y=646, x=450..819):
+  blur layer hidden: 79.97
+  blur enabled: 0.86
+PASS: blur reduces contrast to less than 25% of unblurred contrast.
+PASS: corner pixel outside rounded blur matches the unblurred backdrop.
+Screenshots contain only the isolated test scene.

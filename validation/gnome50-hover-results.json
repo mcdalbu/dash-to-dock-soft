@@ -1,0 +1,24 @@
+{
+  "gnome_shell": "50.5",
+  "backend": "GNOME Rounded Blur",
+  "environment": "isolated headless session, software renderer, 1280x720",
+  "test": "real St hover states toggled across five dock buttons; early (35 ms) and settled (after 320 ms) captures; exit and idle checks",
+  "buttons_found": 8,
+  "buttons_tested": 5,
+  "background_opacity": 0.3,
+  "icon_shadow_intensity": 65,
+  "dock_outline": true,
+  "blur_repaints": 60,
+  "idle_repaints_in_1200_ms": 0,
+  "disable_cleanup": "passed",
+  "result": "normal hover highlights in inspected captures; refresh covers transitions and stops at rest",
+  "limitation": "the exact user-reported transient square was not reproduced with version 7 on this software renderer; this verifies the added hover refresh rather than proving the artifact is absent on every driver",
+  "window_regression": {
+    "window_covers_dock": true,
+    "captures": 8,
+    "repaints_before": 92,
+    "repaints_after": 182,
+    "idle_repaints": 0,
+    "disable_cleanup": "passed"
+  }
+}

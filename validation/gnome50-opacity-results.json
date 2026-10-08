@@ -1,0 +1,38 @@
+[
+  {
+    "requested": 0,
+    "actual": 0,
+    "style": "border-left: 0px solid #00000000;background-color:rgba(56,56,59,0); border-color:rgba(0,0,0,0); transition-delay: 0s; transition-duration: 0.250s;background-image: none;",
+    "blur": "Blur_BlurEffect"
+  },
+  {
+    "requested": 0.1,
+    "actual": 0.09803921568627451,
+    "style": "border-left: 0px solid #00000000;background-color:rgba(56,56,59,0.1); border-color:rgba(0,0,0,0); transition-delay: 0s; transition-duration: 0.250s;background-image: none;",
+    "blur": "Blur_BlurEffect"
+  },
+  {
+    "requested": 0.3,
+    "actual": 0.2980392156862745,
+    "style": "border-left: 0px solid #00000000;background-color:rgba(56,56,59,0.3); border-color:rgba(0,0,0,0); transition-delay: 0s; transition-duration: 0.250s;background-image: none;",
+    "blur": "Blur_BlurEffect"
+  },
+  {
+    "requested": 0.65,
+    "actual": 0.6509803921568628,
+    "style": "border-left: 0px solid #00000000;background-color:rgba(56,56,59,0.65); border-color:rgba(0,0,0,0); transition-delay: 0s; transition-duration: 0.250s;background-image: none;",
+    "blur": "Blur_BlurEffect"
+  },
+  {
+    "requested": 0.9,
+    "actual": 0.9019607843137255,
+    "style": "border-left: 0px solid #00000000;background-color:rgba(56,56,59,0.9); border-color:rgba(0,0,0,0); transition-delay: 0s; transition-duration: 0.250s;background-image: none;",
+    "blur": "Blur_BlurEffect"
+  },
+  {
+    "requested": 1,
+    "actual": 1,
+    "style": "border-left: 0px solid #00000000;background-color:rgba(56,56,59,1); border-color:rgba(0,0,0,0); transition-delay: 0s; transition-duration: 0.250s;background-image: none;",
+    "blur": "Blur_BlurEffect"
+  }
+]

@@ -1,18 +1,21 @@
 {
-"shell-version": [
-    "45",
-    "46",
-    "47",
-    "48",
-    "49",
-    "50",
-    "51"
-],
-"uuid": "dash-to-dock@micxgx.gmail.com",
-"name": "Dash to Dock",
-"description": "A dock for the Gnome Shell. This extension moves the dash out of the overview transforming it in a dock for an easier launching of applications and a faster switching between windows and desktops. Side and bottom placement options are available.",
-"original-author": "micxgx@gmail.com",
-"url": "https://micheleg.github.io/dash-to-dock/",
-"gettext-domain": "dashtodock",
-"version": 109
+    "shell-version": [
+        "45",
+        "46",
+        "47",
+        "48",
+        "49",
+        "50",
+        "51"
+    ],
+    "uuid": "dash-to-dock-soft@local",
+    "name": "Dash to Dock Soft",
+    "description": "An independent fork of Dash to Dock maintained by mcdalbu, with optional adjustable icon shadows, an Adwaita-inspired dock outline and native dynamic background blur. Based on Dash to Dock by Michele G. and contributors.",
+    "original-author": "micxgx@gmail.com",
+    "url": "https://github.com/mcdalbu/dash-to-dock-soft",
+    "gettext-domain": "dashtodock",
+    "version": 8,
+    "settings-schema": "org.gnome.shell.extensions.dash-to-dock-soft",
+    "upstream-url": "https://github.com/micheleg/dash-to-dock",
+    "fork-maintainer": "mcdalbu"
 }

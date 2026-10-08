@@ -183,7 +183,7 @@ const DockSettings = GObject.registerClass({
 
         this._extensionPreferences = extensionPreferences;
         this._settings = extensionPreferences.getSettings(
-            'org.gnome.shell.extensions.dash-to-dock');
+            'org.gnome.shell.extensions.dash-to-dock-soft');
         this._appSwitcherSettings = new Gio.Settings({schema_id: 'org.gnome.shell.app-switcher'});
         this._rtl = Gtk.Widget.get_default_direction() === Gtk.TextDirection.RTL;
 
@@ -953,6 +953,45 @@ const DockSettings = GObject.registerClass({
         });
 
         // Appearance Panel
+
+        this._settings.bind('icon-shadow',
+            this._builder.get_object('icon_shadow_switch'),
+            'active',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('icon-shadow-intensity',
+            this._builder.get_object('icon_shadow_intensity_adjustment'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('icon-shadow',
+            this._builder.get_object('icon_shadow_intensity_scale'),
+            'sensitive',
+            Gio.SettingsBindFlags.GET);
+        this._settings.bind('dock-outline',
+            this._builder.get_object('dock_outline_switch'),
+            'active',
+            Gio.SettingsBindFlags.DEFAULT);
+
+        this._settings.bind('dock-blur',
+            this._builder.get_object('dock_blur_switch'),
+            'active',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('dock-blur-radius',
+            this._builder.get_object('dock_blur_radius_adjustment'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('dock-blur',
+            this._builder.get_object('dock_blur_radius_scale'),
+            'sensitive',
+            Gio.SettingsBindFlags.GET);
+
+        this._settings.bind('dock-blur-corner-radius',
+            this._builder.get_object('dock_blur_corner_radius_adjustment'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('dock-blur',
+            this._builder.get_object('dock_blur_corner_radius_scale'),
+            'sensitive',
+            Gio.SettingsBindFlags.GET);
 
         this._settings.bind('apply-custom-theme',
             this._builder.get_object('customize_theme'),

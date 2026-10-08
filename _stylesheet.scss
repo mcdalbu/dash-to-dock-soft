@@ -517,3 +517,10 @@ $dock_style_modes: null, shrink, extended, extended-shrink;
         background-size: contain;
     }
 }
+
+// Optional fork effects, scoped to the dock (never the overview app grid).
+@for $intensity from 0 through 100 {
+    #dashtodockContainer.soft-icon-shadow.soft-shadow-strength-#{$intensity} .overview-icon StIcon {
+        icon-shadow: 0 2px 4px rgba(0, 0, 0, $intensity / 100);
+    }
+}

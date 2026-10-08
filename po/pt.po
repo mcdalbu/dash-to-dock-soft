@@ -512,3 +512,50 @@ msgstr "Mostrar tempo limite (s)"
 #: Settings.ui.h:107
 msgid "Pressure threshold"
 msgstr "Limite de pressão"
+
+#: Settings.ui
+msgid "Soft icon shadow"
+msgstr "Sombra suave nos ícones"
+
+#: Settings.ui
+msgid "Add a subtle shadow below the icons."
+msgstr "Adiciona uma sombra subtil abaixo dos ícones."
+
+
+
+
+#: Settings.ui
+msgid "Adwaita-inspired dock outline"
+msgstr "Contorno do dock inspirado no Adwaita"
+
+#: Settings.ui
+msgid "Add a subtle outline around the dock, following its corners."
+msgstr "Adiciona um contorno subtil em volta do dock, acompanhando os seus cantos."
+
+#: Settings.ui
+msgid "Blur behind the dock"
+msgstr "Desfoque atrás do dock"
+
+#: Settings.ui
+msgid "Blur the background behind the dock while keeping icons sharp."
+msgstr "Desfoca o fundo atrás do dock, mantendo os ícones nítidos."
+
+#: Settings.ui
+msgid "Blur intensity"
+msgstr "Intensidade do desfoque"
+
+#: Settings.ui
+msgid "Independent fork of Dash to Dock with soft icon shadows, a dock outline and background blur"
+msgstr "Fork independente do Dash to Dock com sombras suaves nos ícones, contorno no dock e desfoque de fundo"
+
+#: Settings.ui
+msgid "Shadow intensity (%)"
+msgstr "Intensidade da sombra (%)"
+
+#: Settings.ui
+msgid "Blur corner radius (px)"
+msgstr "Raio dos cantos do desfoque (px)"
+
+#: Settings.ui
+msgid "Blur the background behind the dock while keeping icons sharp. Rounded corners require GNOME Rounded Blur when native support is unavailable."
+msgstr "Desfoca o fundo atrás do dock, mantendo os ícones nítidos. Os cantos arredondados precisam do GNOME Rounded Blur quando não há suporte nativo."

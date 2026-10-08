@@ -1,10 +1,11 @@
 # Basic Makefile
 
-UUID = dash-to-dock@micxgx.gmail.com
+UUID = dash-to-dock-soft@local
 BASE_MODULES = extension.js \
                metadata.json \
                COPYING \
                README.md \
+               AUTHORS.md \
                $(NULL)
 
 EXTRA_MODULES = \
@@ -25,6 +26,7 @@ EXTRA_MODULES = \
                 intellihide.js \
                 prefs.js \
                 theming.js \
+                blurBackend.js \
                 utils.js \
                 dbusmenuUtils.js \
                 desktopIconsIntegration.js \
@@ -46,7 +48,7 @@ else
 	SHARE_PREFIX = $(DESTDIR)/usr/share
 	INSTALLBASE = $(SHARE_PREFIX)/gnome-shell/extensions
 endif
-INSTALLNAME = dash-to-dock@micxgx.gmail.com
+INSTALLNAME = dash-to-dock-soft@local
 
 # The command line passed variable VERSION is used to set the version string
 # in the metadata and in the generated zip-file. If no VERSION is passed, the
@@ -68,7 +70,7 @@ clean:
 
 extension: ./schemas/gschemas.compiled ./stylesheet.css $(MSGSRC:.po=.mo)
 
-./schemas/gschemas.compiled: ./schemas/org.gnome.shell.extensions.dash-to-dock.gschema.xml
+./schemas/gschemas.compiled: ./schemas/org.gnome.shell.extensions.dash-to-dock-soft.gschema.xml
 	glib-compile-schemas ./schemas/
 
 potfile: ./po/dashtodock.pot
@@ -128,7 +130,7 @@ _build: all
 	mkdir -p _build/media
 	cd media ; cp $(EXTRA_MEDIA) ../_build/media/
 	mkdir -p _build/schemas
-	cp schemas/*.gschema.xml _build/schemas/
+	cp schemas/*.gschema.xml schemas/gschemas.compiled _build/schemas/
 	mkdir -p _build/locale
 	for l in $(MSGSRC:.po=.mo) ; do \
 		lf=_build/locale/`basename $$l .mo`; \

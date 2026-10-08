@@ -3,12 +3,15 @@
 import {
     Clutter,
     Cogl,
+    GLib,
     GObject,
     Meta,
+    Shell,
     St,
 } from './dependencies/gi.js';
 
 import {Main} from './dependencies/shell/ui.js';
+import {loadBlurBackend} from './blurBackend.js';
 
 import {
     Docking,
@@ -16,6 +19,7 @@ import {
 } from './imports.js';
 
 const {signals: Signals} = imports;
+const BlurBackend = await loadBlurBackend(Shell, GObject);
 
 /*
  * DEFAULT:  transparency given by theme
@@ -31,6 +35,8 @@ const TransparencyMode = {
 const Labels = Object.freeze({
     TRANSPARENCY: Symbol('transparency'),
     THEME_CHANGED: Symbol('theme-changed'),
+    BLUR_WINDOWS: Symbol('blur-windows'),
+    BLUR_DASH: Symbol('blur-dash'),
 });
 
 export const PositionStyleClass = Object.freeze([
@@ -41,6 +47,32 @@ export const PositionStyleClass = Object.freeze([
 ]);
 
 /**
+ * Apply surface options after the upstream theme/transparency styles, including
+ * window-driven transparency changes. Keep icon actors and theme radii intact.
+ *
+ * @param dock
+ */
+function applyDockSurfaceStyle(dock) {
+    const {settings} = Docking.DockManager;
+    if (!settings.dockOutline && !settings.dockBlur)
+        return;
+
+    const background = dock.dash._background;
+    let style = background.get_style() || '';
+    if (style && !style.trimEnd().endsWith(';'))
+        style += ';';
+    if (settings.dockOutline) {
+        const color = background.get_theme_node().get_background_color();
+        const luminance = (0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue) / 255;
+        const borderColor = luminance > 0.5 ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.15)';
+        style += `border: 1px solid ${borderColor};`;
+    }
+    if (settings.dockBlur)
+        style += 'background-image: none;';
+    background.set_style(style);
+}
+
+/**
  * Manage theme customization and custom theme support
  */
 export class ThemeManager {
@@ -49,6 +81,7 @@ export class ThemeManager {
         this._bindSettingsChanges();
         this._actor = dock;
         this._dash = dock.dash;
+        this._blurEffect = null;
 
         // initialize colors with generic values
         this._customizedBackground = {red: 0, green: 0, blue: 0, alpha: 0};
@@ -65,6 +98,9 @@ export class ThemeManager {
             'hiding',
             this._onOverviewHiding.bind(this),
         ]);
+
+        this._signalsHandler.add(St.ThemeContext.get_for_stage(global.stage),
+            'notify::scale-factor', () => this._updateBlur());
 
         this._signalsHandler.addWithLabel(Labels.THEME_CHANGED,
             St.ThemeContext.get_for_stage(global.stage), 'changed',
@@ -93,12 +129,21 @@ export class ThemeManager {
         else
             this._onOverviewHiding();
 
+        this._signalsHandler.add(this._dash._background, 'destroy', () => this._disableBlur());
+        for (const actor of [this._dash, this._dash._background]) {
+            this._signalsHandler.add(actor, 'notify::allocation', () => this._queueBlurGeometry());
+        }
+
         // destroy themeManager when the managed actor is destroyed (e.g. extension unload)
         // in order to disconnect signals
         this._signalsHandler.add(this._actor, 'destroy', () => this.destroy());
     }
 
     destroy() {
+        if (this._destroyed)
+            return;
+        this._destroyed = true;
+        this._disableBlur();
         this.emit('destroy');
         this._transparency.destroy();
         this._dequeueUpdateCustomTheme();
@@ -228,6 +273,217 @@ export class ThemeManager {
         }
     }
 
+    _repaintBlur() {
+        if (!this._blurEffect || !this._blurActor?.mapped)
+            return;
+        // Damage the complete dock region before Mutter paints it. A cached
+        // blur cannot safely reuse a partial window/shadow/hover redraw.
+        this._blurActor.queue_redraw();
+        this._blurEffect.queue_repaint();
+    }
+
+    _queueBlurRepaint() {
+        if (!this._blurActor?.mapped || this._blurRepaintLater)
+            return;
+        this._blurRepaintLater = Utils.laterAdd(Meta.LaterType.BEFORE_REDRAW, () => {
+            this._blurRepaintLater = 0;
+            this._repaintBlur();
+        });
+    }
+
+    _refreshBlurForStyle(actor) {
+        // Hover/focus styles can animate on a child of the button. Watch the
+        // widgets themselves and cover their complete CSS transition, including
+        // the final frame, rather than invalidating only on pointer entry.
+        const duration = Math.max(0, actor.get_theme_node().get_transition_duration());
+        this._blurStyleUntil = Math.max(this._blurStyleUntil || 0,
+            GLib.get_monotonic_time() + (duration + 50) * 1000);
+        this._queueBlurRepaint();
+    }
+
+    _trackBlurDashActor(actor) {
+        if (this._blurDashActors.has(actor))
+            return;
+        const label = Symbol('blur-dash-actor');
+        this._blurDashActors.set(actor, label);
+        const added = GObject.signal_lookup('child-added', actor) ? 'child-added' : 'actor-added';
+        this._signalsHandler.addWithLabel(label,
+            [actor, added, (_parent, child) => this._trackBlurDashActor(child)],
+            [actor, added === 'child-added' ? 'child-removed' : 'actor-removed',
+                (_parent, child) => this._untrackBlurDashActor(child)]);
+        if (GObject.signal_lookup('style-changed', actor)) {
+            this._signalsHandler.addWithLabel(label,
+                [actor, 'style-changed', () => this._refreshBlurForStyle(actor)]);
+        }
+        for (const child of actor.get_children())
+            this._trackBlurDashActor(child);
+    }
+
+    _untrackBlurDashActor(actor) {
+        const label = this._blurDashActors.get(actor);
+        if (!label)
+            return;
+        for (const child of actor.get_children())
+            this._untrackBlurDashActor(child);
+        this._signalsHandler.removeWithLabel(label);
+        this._blurDashActors.delete(actor);
+    }
+
+    _windowIntersectsBlur(actor) {
+        if (!actor.mapped || !this._blurActor)
+            return false;
+        const rect = actor.get_meta_window()?.get_frame_rect();
+        if (!rect)
+            return false;
+        const [x, y] = this._blurActor.get_transformed_position();
+        const [width, height] = this._blurActor.get_transformed_size();
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        const margin = Math.max(64, Docking.DockManager.settings.dockBlurRadius) * scale;
+        return rect.x < x + width + margin && rect.x + rect.width > x - margin &&
+            rect.y < y + height + margin && rect.y + rect.height > y - margin;
+    }
+
+    _trackBlurWindow(actor) {
+        if (!actor.get_meta_window || this._blurWindows.has(actor))
+            return;
+        const label = Symbol('blur-window');
+        const record = {label, affected: this._windowIntersectsBlur(actor)};
+        this._blurWindows.set(actor, record);
+        const update = () => {
+            const affected = this._windowIntersectsBlur(actor);
+            if (affected || record.affected)
+                this._queueBlurRepaint();
+            record.affected = affected;
+        };
+        const signals = ['notify::allocation', 'notify::mapped', 'notify::opacity'];
+        if (GObject.signal_lookup('damaged', actor))
+            signals.push('damaged');
+        this._signalsHandler.addWithLabel(label, ...signals.map(signal => [actor, signal, update]));
+        if (record.affected)
+            this._queueBlurRepaint();
+    }
+
+    _startBlurRepaints() {
+        this._blurDashActors = new Map();
+        this._blurStyleUntil = 0;
+        this._trackBlurDashActor(this._dash);
+        this._signalsHandler.addWithLabel(Labels.BLUR_DASH,
+            [global.stage, 'before-update', () => {
+                if (GLib.get_monotonic_time() < this._blurStyleUntil)
+                    this._repaintBlur();
+            }]);
+        this._blurWindows = new Map();
+        const added = GObject.signal_lookup('child-added', global.window_group) ? 'child-added' : 'actor-added';
+        const removed = added === 'child-added' ? 'child-removed' : 'actor-removed';
+        this._signalsHandler.addWithLabel(Labels.BLUR_WINDOWS,
+            [global.window_group, added, (_group, actor) => this._trackBlurWindow(actor)],
+            [global.window_group, removed, (_group, actor) => {
+                const record = this._blurWindows?.get(actor);
+                if (!record)
+                    return;
+                this._signalsHandler.removeWithLabel(record.label);
+                this._blurWindows.delete(actor);
+                this._queueBlurRepaint();
+            }],
+            [global.display, 'restacked', () => this._queueBlurRepaint()]);
+        for (const actor of global.get_window_actors())
+            this._trackBlurWindow(actor);
+    }
+
+    _stopBlurRepaints() {
+        if (this._blurDashActors) {
+            for (const label of this._blurDashActors.values())
+                this._signalsHandler.removeWithLabel(label);
+            this._blurDashActors = null;
+        }
+        this._blurStyleUntil = 0;
+        this._signalsHandler.removeWithLabel(Labels.BLUR_DASH);
+        if (this._blurRepaintLater) {
+            Utils.laterRemove(this._blurRepaintLater);
+            this._blurRepaintLater = 0;
+        }
+        if (!this._blurWindows)
+            return;
+        for (const {label} of this._blurWindows.values())
+            this._signalsHandler.removeWithLabel(label);
+        this._signalsHandler.removeWithLabel(Labels.BLUR_WINDOWS);
+        this._blurWindows = null;
+    }
+
+    _queueBlurGeometry() {
+        if (!this._blurGroup || this._blurGeometryLater)
+            return;
+        this._blurGeometryLater = Utils.laterAdd(Meta.LaterType.BEFORE_REDRAW, () => {
+            this._blurGeometryLater = 0;
+            this._updateBlurGeometry();
+        });
+    }
+
+    _updateBlurGeometry() {
+        if (!this._blurActor)
+            return;
+        const background = this._dash._background;
+        this._blurActor.set_position(this._dash.x + background.x, this._dash.y + background.y);
+        this._blurActor.set_size(background.width, background.height);
+        this._queueBlurRepaint();
+    }
+
+    _disableBlur() {
+        this._stopBlurRepaints();
+        if (this._blurGeometryLater) {
+            Utils.laterRemove(this._blurGeometryLater);
+            this._blurGeometryLater = 0;
+        }
+        this._blurGroup?.destroy();
+        this._blurGroup = null;
+        this._blurActor = null;
+        this._blurEffect = null;
+    }
+
+    _updateBlur() {
+        const {settings} = Docking.DockManager;
+        if (!settings.dockBlur) {
+            this._disableBlur();
+            return;
+        }
+
+        if (!this._blurEffect) {
+            const parent = this._dash.get_parent();
+            if (!parent)
+                return;
+            const properties = BlurBackend.BlurEffect.list_properties().map(property => property.name);
+            this._blurRadiusProperty = properties.includes('radius') ? 'radius' : 'sigma';
+            this._blurHasCornerRadius = properties.includes('corner-radius');
+            this._blurEffect = new BlurBackend.BlurEffect({
+                mode: BlurBackend.BlurMode.BACKGROUND,
+                brightness: 0.85,
+            });
+            // The dash uses offscreen rendering. Sample the stage backdrop
+            // outside that subtree, underneath both the tint and the icons.
+            this._blurGroup = new Meta.BackgroundGroup({
+                name: 'soft-dock-blur-group', width: 0, height: 0,
+            });
+            this._blurActor = new St.Widget({
+                name: 'soft-dock-blur-background', reactive: false,
+                style: 'background-color: transparent;',
+            });
+            this._blurActor.add_effect_with_name('soft-dock-blur', this._blurEffect);
+            this._blurGroup.add_child(this._blurActor);
+            parent.insert_child_below(this._blurGroup, this._dash);
+            this._startBlurRepaints();
+        }
+
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        const radius = settings.dockBlurRadius * scale;
+        this._blurEffect[this._blurRadiusProperty] =
+            this._blurRadiusProperty === 'radius' ? radius : radius / 2;
+        if (this._blurHasCornerRadius) {
+            this._blurEffect.corner_radius = settings.dockBlurCornerRadius * scale;
+        }
+        this._updateBlurGeometry();
+        this._queueBlurGeometry();
+    }
+
     _updateCustomStyleClasses() {
         const {settings} = Docking.DockManager;
 
@@ -235,6 +491,20 @@ export class ThemeManager {
             this._actor.add_style_class_name('dashtodock');
         else
             this._actor.remove_style_class_name('dashtodock');
+
+        if (settings.iconShadow)
+            this._actor.add_style_class_name('soft-icon-shadow');
+        else
+            this._actor.remove_style_class_name('soft-icon-shadow');
+
+        const shadowClass = settings.iconShadow ? `soft-shadow-strength-${settings.iconShadowIntensity}` : null;
+        if (shadowClass !== this._shadowIntensityClass) {
+            if (this._shadowIntensityClass)
+                this._actor.remove_style_class_name(this._shadowIntensityClass);
+            if (shadowClass)
+                this._actor.add_style_class_name(shadowClass);
+            this._shadowIntensityClass = shadowClass;
+        }
 
         if (settings.customThemeShrink)
             this._actor.add_style_class_name('shrink');
@@ -265,6 +535,8 @@ export class ThemeManager {
         this._updateDashOpacity();
         this._updateDashColor();
         this._adjustTheme();
+        applyDockSurfaceStyle(this._actor);
+        this._updateBlur();
         this.emit('updated');
     }
 
@@ -333,6 +605,12 @@ export class ThemeManager {
             'background-color',
             'apply-custom-theme',
             'custom-theme-shrink',
+            'icon-shadow',
+            'icon-shadow-intensity',
+            'dock-outline',
+            'dock-blur',
+            'dock-blur-radius',
+            'dock-blur-corner-radius',
             'custom-theme-running-dots',
             'extend-height',
             'force-straight-corner'];
@@ -487,6 +765,7 @@ class Transparency {
             this._dockActor.add_style_class_name('transparent');
         }
 
+        applyDockSurfaceStyle(this._dock);
         this.emit('solid-style-updated', isNear);
     }
 

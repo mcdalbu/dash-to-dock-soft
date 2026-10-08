@@ -1,0 +1,70 @@
+{
+  "gnome_shell": "50.5",
+  "backend": "GNOME Rounded Blur",
+  "environment": "isolated headless session, software renderer, 1280x720",
+  "test": "animated GTK window moved behind a visible dock; dock pinned for test to bypass visibility and work-area constraints",
+  "window_rect": {
+    "x": 50,
+    "y": 250,
+    "width": 1100,
+    "height": 450
+  },
+  "dock_center": [
+    639.5,
+    588
+  ],
+  "captures": 8,
+  "sample_rect": [
+    450,
+    553,
+    820,
+    558
+  ],
+  "sample_rgb_means": [
+    [
+      86.0,
+      86.0,
+      87.0
+    ],
+    [
+      86.0,
+      86.0,
+      87.0
+    ],
+    [
+      86.0,
+      86.0,
+      87.0
+    ],
+    [
+      86.0,
+      86.0,
+      87.0
+    ],
+    [
+      86.0,
+      86.0,
+      87.0
+    ],
+    [
+      86.0,
+      86.0,
+      87.0
+    ],
+    [
+      86.0,
+      86.0,
+      87.0
+    ],
+    [
+      86.0,
+      86.0,
+      87.0
+    ]
+  ],
+  "repaints_before": 74,
+  "repaints_after": 164,
+  "idle_repaints": 0,
+  "disable_cleanup": "passed",
+  "limitation": "captures sample a uniform portion of the backdrop; this does not prove absence of every transient artifact on other GPUs"
+}

@@ -1840,6 +1840,261 @@
                   <object class="GtkListBox" id="listbox1">
                     <property name="selection_mode">none</property>
                     <child>
+                      <object class="GtkListBoxRow">
+                        <property name="activatable">0</property>
+                        <property name="child">
+                          <object class="GtkGrid">
+                            <property name="margin_start">12</property>
+                            <property name="margin_end">12</property>
+                            <property name="margin_top">12</property>
+                            <property name="margin_bottom">12</property>
+                            <property name="column_spacing">32</property>
+                            <property name="row_spacing">4</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Soft icon shadow</property>
+                                <property name="hexpand">1</property>
+                                <property name="xalign">0</property>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Add a subtle shadow below the icons.</property>
+                                <property name="xalign">0</property>
+                                <property name="wrap">1</property>
+                                <style><class name="dim-label"/></style>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">1</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSwitch" id="icon_shadow_switch">
+                                <property name="halign">end</property>
+                                <property name="valign">center</property>
+                                <layout>
+                                  <property name="column">1</property>
+                                  <property name="row">0</property>
+                                  <property name="row-span">2</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="activatable">0</property>
+                        <property name="child">
+                          <object class="GtkBox">
+                            <property name="margin_start">12</property>
+                            <property name="margin_end">12</property>
+                            <property name="margin_top">12</property>
+                            <property name="margin_bottom">12</property>
+                            <property name="spacing">24</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Shadow intensity (%)</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkScale" id="icon_shadow_intensity_scale">
+                                <property name="hexpand">1</property>
+                                <property name="digits">0</property>
+                                <property name="draw_value">1</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment" id="icon_shadow_intensity_adjustment">
+                                    <property name="lower">0</property>
+                                    <property name="upper">100</property>
+                                    <property name="step_increment">1</property>
+                                    <property name="page_increment">5</property>
+                                    <property name="value">24</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="activatable">0</property>
+                        <property name="child">
+                          <object class="GtkGrid">
+                            <property name="margin_start">12</property>
+                            <property name="margin_end">12</property>
+                            <property name="margin_top">12</property>
+                            <property name="margin_bottom">12</property>
+                            <property name="column_spacing">32</property>
+                            <property name="row_spacing">4</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Adwaita-inspired dock outline</property>
+                                <property name="hexpand">1</property>
+                                <property name="xalign">0</property>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Add a subtle outline around the dock, following its corners.</property>
+                                <property name="xalign">0</property>
+                                <property name="wrap">1</property>
+                                <style><class name="dim-label"/></style>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">1</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSwitch" id="dock_outline_switch">
+                                <property name="halign">end</property>
+                                <property name="valign">center</property>
+                                <layout>
+                                  <property name="column">1</property>
+                                  <property name="row">0</property>
+                                  <property name="row-span">2</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="activatable">0</property>
+                        <property name="child">
+                          <object class="GtkGrid">
+                            <property name="margin_start">12</property>
+                            <property name="margin_end">12</property>
+                            <property name="margin_top">12</property>
+                            <property name="margin_bottom">12</property>
+                            <property name="column_spacing">32</property>
+                            <property name="row_spacing">4</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Blur behind the dock</property>
+                                <property name="hexpand">1</property>
+                                <property name="xalign">0</property>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">0</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Blur the background behind the dock while keeping icons sharp. Rounded corners require GNOME Rounded Blur when native support is unavailable.</property>
+                                <property name="xalign">0</property>
+                                <property name="wrap">1</property>
+                                <style><class name="dim-label"/></style>
+                                <layout>
+                                  <property name="column">0</property>
+                                  <property name="row">1</property>
+                                </layout>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSwitch" id="dock_blur_switch">
+                                <property name="halign">end</property>
+                                <property name="valign">center</property>
+                                <layout>
+                                  <property name="column">1</property>
+                                  <property name="row">0</property>
+                                  <property name="row-span">2</property>
+                                </layout>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="activatable">0</property>
+                        <property name="child">
+                          <object class="GtkBox">
+                            <property name="margin_start">12</property>
+                            <property name="margin_end">12</property>
+                            <property name="margin_top">12</property>
+                            <property name="margin_bottom">12</property>
+                            <property name="spacing">24</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Blur intensity</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkScale" id="dock_blur_radius_scale">
+                                <property name="hexpand">1</property>
+                                <property name="digits">0</property>
+                                <property name="draw_value">1</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment" id="dock_blur_radius_adjustment">
+                                    <property name="lower">1</property>
+                                    <property name="upper">100</property>
+                                    <property name="step_increment">1</property>
+                                    <property name="page_increment">5</property>
+                                    <property name="value">30</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="activatable">0</property>
+                        <property name="child">
+                          <object class="GtkBox">
+                            <property name="margin_start">12</property>
+                            <property name="margin_end">12</property>
+                            <property name="margin_top">12</property>
+                            <property name="margin_bottom">12</property>
+                            <property name="spacing">24</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">Blur corner radius (px)</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkScale" id="dock_blur_corner_radius_scale">
+                                <property name="hexpand">1</property>
+                                <property name="digits">0</property>
+                                <property name="draw_value">1</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment" id="dock_blur_corner_radius_adjustment">
+                                    <property name="lower">0</property>
+                                    <property name="upper">100</property>
+                                    <property name="step_increment">1</property>
+                                    <property name="page_increment">5</property>
+                                    <property name="value">24</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkListBoxRow" id="listboxrow2">
                         <property name="child">
                           <object class="GtkGrid" id="shrink_dash">
@@ -2331,7 +2586,7 @@
             <child>
               <object class="GtkLabel" id="extension_name">
                 <property name="can_focus">0</property>
-                <property name="label">&lt;b&gt;Dash to Dock&lt;/b&gt;</property>
+                <property name="label">&lt;b&gt;Dash to Dock Soft&lt;/b&gt;</property>
                 <property name="use_markup">1</property>
               </object>
             </child>
@@ -2358,7 +2613,7 @@
             <child>
               <object class="GtkLabel" id="extension_description">
                 <property name="can_focus">0</property>
-                <property name="label" translatable="yes">Moves the dash out of the overview transforming it in a dock</property>
+                <property name="label" translatable="yes">Independent fork of Dash to Dock with soft icon shadows, a dock outline and background blur</property>
                 <property name="justify">center</property>
                 <property name="wrap">1</property>
                 <property name="xalign">0</property>
