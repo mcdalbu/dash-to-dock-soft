@@ -7,8 +7,14 @@ const assert = require('node:assert/strict');
 
 const settings = {applyCustomTheme: false, customThemeShrink: false,
     runningIndicatorStyle: 0, forceStraightCorner: false,
-    iconShadow: false, iconShadowIntensity: 24, dockOutline: false, dockBlur: false, dockBlurRadius: 30, dockBlurCornerRadius: 24};
-const context = {scale_factor: 1};
+    iconShadow: false, iconShadowIntensity: 24, iconShadowOffsetX: 0, iconShadowOffsetY: 2, iconShadowBlur: 4,
+    dockOutline: false, dockBlur: false, dockBlurRadius: 30, dockBlurCornerRadius: 24};
+function createTheme() {
+    return {styles: new Map(), loads: 0,
+        load_stylesheet(file) {this.styles.set(file, file.content); this.loads++; this.onLoad?.();},
+        unload_stylesheet(file) {this.styles.delete(file);}};
+}
+const context = {scale_factor: 1, theme: createTheme(), get_theme() {return this.theme;}};
 let propertyNames = ['radius', 'brightness', 'mode'];
 let effectCount = 0;
 class MockBlurEffect {
@@ -60,6 +66,10 @@ let monotonicTime = 1000000;
 const sandbox = {imports: {signals: {addSignalMethods() {}}}, global: {stage: {}, window_group: {}, display: {}, get_window_actors: () => []},
     GObject: {signal_lookup: () => 1},
     GLib: {get_monotonic_time: () => monotonicTime},
+    Gio: {FileCreateFlags: {REPLACE_DESTINATION: 1}, File: {new_tmp: () => [{
+        replace_contents(content) {this.content = content;},
+        delete() {this.deleted = true;},
+    }, {close() {}}]}},
     Docking: {DockManager: {settings}},
     Shell: {BlurEffect: MockBlurEffect, BlurMode: {BACKGROUND: 1}},
     Meta: {BackgroundGroup: MockActor, LaterType: {BEFORE_REDRAW: 1}},
@@ -164,14 +174,42 @@ for (const shadow of [false, true]) {
 }
 
 // Reuse one effect when changing intensity and account for monitor scale.
-// Shadow strength updates live and disabling removes its CSS class.
+// Shadow controls update live; no reload loop, leaked stylesheet, or cross-dock changes.
 settings.iconShadowIntensity = 65;
 a.manager._updateCustomStyleClasses();
-assert(a.classes.has('soft-shadow-strength-65'));
-assert(!a.classes.has('soft-shadow-strength-24'));
+assert(a.manager._shadowCss.includes('icon-shadow: 0px 2px 4px rgba(0, 0, 0, 0.65)'));
+const shadowFile = a.manager._shadowFile;
+const loads = context.theme.loads;
+context.theme.onLoad = () => a.manager._updateIconShadow();
+settings.iconShadowOffsetX = -8;
+settings.iconShadowOffsetY = 12;
+settings.iconShadowBlur = 0;
+a.manager._updateCustomStyleClasses();
+assert.equal(a.manager._shadowFile, shadowFile);
+assert(a.manager._shadowCss.includes('icon-shadow: -8px 12px 0px rgba(0, 0, 0, 0.65)'));
+a.manager._updateCustomStyleClasses();
+assert.equal(context.theme.loads, loads + 1, 'No recursive theme load for identical settings');
+delete context.theme.onLoad;
+const otherShadow = createDock();
+otherShadow.manager._updateCustomStyleClasses();
+const otherFile = otherShadow.manager._shadowFile;
+assert.notEqual(otherFile, shadowFile);
+assert.notEqual(otherShadow.manager._shadowClass, a.manager._shadowClass);
+const oldTheme = context.theme;
+context.theme = createTheme();
+a.manager._updateCustomStyleClasses();
+assert(!oldTheme.styles.has(shadowFile));
+assert(context.theme.styles.has(shadowFile), 'Reload shadow after a theme replacement');
 settings.iconShadow = false;
 a.manager._updateCustomStyleClasses();
-assert(!a.classes.has('soft-shadow-strength-65'));
+assert(shadowFile.deleted);
+assert(!context.theme.styles.has(shadowFile));
+assert(!a.classes.has(a.manager._shadowClass));
+assert(oldTheme.styles.has(otherFile), 'Disabling one dock cannot remove another stylesheet');
+otherShadow.manager.destroy();
+assert(otherFile.deleted);
+assert(!oldTheme.styles.has(otherFile));
+Object.assign(settings, {iconShadowOffsetX: 0, iconShadowOffsetY: 2, iconShadowBlur: 4});
 
 const effect = a.manager._blurEffect;
 const count = effectCount;
@@ -253,7 +291,7 @@ const originalHandler = b.manager._signalsHandler;
 b.manager._signalsHandler = {addWithLabel: (label, ...bindings) => {signals = bindings;}};
 b.manager._bindSettingsChanges();
 b.manager._signalsHandler = originalHandler;
-for (const key of ['icon-shadow', 'icon-shadow-intensity', 'dock-outline', 'dock-blur', 'dock-blur-radius', 'dock-blur-corner-radius', 'background-color'])
+for (const key of ['icon-shadow', 'icon-shadow-intensity', 'icon-shadow-offset-x', 'icon-shadow-offset-y', 'icon-shadow-blur', 'dock-outline', 'dock-blur', 'dock-blur-radius', 'dock-blur-corner-radius', 'background-color'])
     assert(signals.some(binding => binding[1] === `changed::${key}`));
 // GNOME Rounded Blur must provide both the effect class and matching mode enum.
 sandbox.BlurBackend = sandbox.selectBlurBackend(compatibility, native, typeName);
@@ -324,4 +362,4 @@ assert.equal(b.manager._blurDashActors, null);
 assert.equal(b.manager._blurStyleUntil, 0);
 assert.equal(b.signalBindings.size, 0, 'Remove window and global handlers on teardown');
 
-console.log('PASS: separate backdrop layer/geometry, shadow strength, dock surface, independent options, transparency and hover transitions, bounded repaint/cleanup, scale and API compatibility');
+console.log('PASS: separate backdrop layer/geometry, adjustable shadows, dock surface, independent options, transparency and hover transitions, bounded repaint/cleanup, scale and API compatibility');

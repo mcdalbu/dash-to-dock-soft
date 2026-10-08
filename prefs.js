@@ -966,6 +966,33 @@ const DockSettings = GObject.registerClass({
             this._builder.get_object('icon_shadow_intensity_scale'),
             'sensitive',
             Gio.SettingsBindFlags.GET);
+        this._settings.bind('icon-shadow-offset-x',
+            this._builder.get_object('icon_shadow_offset_x_adjustment'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('icon-shadow',
+            this._builder.get_object('icon_shadow_offset_x_scale'),
+            'sensitive',
+            Gio.SettingsBindFlags.GET);
+
+        this._settings.bind('icon-shadow-offset-y',
+            this._builder.get_object('icon_shadow_offset_y_adjustment'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('icon-shadow',
+            this._builder.get_object('icon_shadow_offset_y_scale'),
+            'sensitive',
+            Gio.SettingsBindFlags.GET);
+
+        this._settings.bind('icon-shadow-blur',
+            this._builder.get_object('icon_shadow_blur_adjustment'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('icon-shadow',
+            this._builder.get_object('icon_shadow_blur_scale'),
+            'sensitive',
+            Gio.SettingsBindFlags.GET);
+
         this._settings.bind('dock-outline',
             this._builder.get_object('dock_outline_switch'),
             'active',

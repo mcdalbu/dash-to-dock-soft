@@ -4,6 +4,7 @@ import {
     Clutter,
     Cogl,
     GLib,
+    Gio,
     GObject,
     Meta,
     Shell,
@@ -20,6 +21,7 @@ import {
 
 const {signals: Signals} = imports;
 const BlurBackend = await loadBlurBackend(Shell, GObject);
+let shadowStyleId = 0;
 
 /*
  * DEFAULT:  transparency given by theme
@@ -143,6 +145,7 @@ export class ThemeManager {
         if (this._destroyed)
             return;
         this._destroyed = true;
+        this._disableIconShadow();
         this._disableBlur();
         this.emit('destroy');
         this._transparency.destroy();
@@ -484,6 +487,52 @@ export class ThemeManager {
         this._queueBlurGeometry();
     }
 
+    _disableIconShadow() {
+        if (this._shadowFile) {
+            this._shadowTheme?.unload_stylesheet(this._shadowFile);
+            this._shadowFile.delete(null);
+        }
+        this._shadowFile = null;
+        this._shadowTheme = null;
+        this._shadowCss = null;
+        if (this._shadowClass)
+            this._actor.remove_style_class_name(this._shadowClass);
+    }
+
+    _updateIconShadow() {
+        const {settings} = Docking.DockManager;
+        if (!settings.iconShadow) {
+            this._disableIconShadow();
+            return;
+        }
+
+        // A scoped stylesheet also covers icons created/replaced after startup,
+        // without overwriting their inline styles or generating every possible
+        // combination of the four shadow controls in the bundled stylesheet.
+        this._shadowClass ??= `soft-shadow-profile-${++shadowStyleId}`;
+        const css = `#dashtodockContainer.soft-icon-shadow.${this._shadowClass} .overview-icon StIcon {` +
+            `icon-shadow: ${settings.iconShadowOffsetX}px ${settings.iconShadowOffsetY}px ` +
+            `${settings.iconShadowBlur}px rgba(0, 0, 0, ${settings.iconShadowIntensity / 100});}`;
+        const theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+        if (this._shadowTheme === theme && this._shadowCss === css)
+            return;
+
+        if (!this._shadowFile) {
+            const [file, stream] = Gio.File.new_tmp('dash-to-dock-soft-shadow-XXXXXX');
+            stream.close(null);
+            this._shadowFile = file;
+        } else {
+            this._shadowTheme?.unload_stylesheet(this._shadowFile);
+        }
+        this._shadowFile.replace_contents(css, null, false,
+            Gio.FileCreateFlags.REPLACE_DESTINATION, null);
+        // Cache before loading: load_stylesheet emits ThemeContext::changed.
+        this._shadowCss = css;
+        this._shadowTheme = theme;
+        this._actor.add_style_class_name(this._shadowClass);
+        theme.load_stylesheet(this._shadowFile);
+    }
+
     _updateCustomStyleClasses() {
         const {settings} = Docking.DockManager;
 
@@ -497,14 +546,7 @@ export class ThemeManager {
         else
             this._actor.remove_style_class_name('soft-icon-shadow');
 
-        const shadowClass = settings.iconShadow ? `soft-shadow-strength-${settings.iconShadowIntensity}` : null;
-        if (shadowClass !== this._shadowIntensityClass) {
-            if (this._shadowIntensityClass)
-                this._actor.remove_style_class_name(this._shadowIntensityClass);
-            if (shadowClass)
-                this._actor.add_style_class_name(shadowClass);
-            this._shadowIntensityClass = shadowClass;
-        }
+        this._updateIconShadow();
 
         if (settings.customThemeShrink)
             this._actor.add_style_class_name('shrink');
@@ -607,6 +649,9 @@ export class ThemeManager {
             'custom-theme-shrink',
             'icon-shadow',
             'icon-shadow-intensity',
+            'icon-shadow-offset-x',
+            'icon-shadow-offset-y',
+            'icon-shadow-blur',
             'dock-outline',
             'dock-blur',
             'dock-blur-radius',

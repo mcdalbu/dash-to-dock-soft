@@ -11,7 +11,10 @@ Em **Preferências → Aparência**:
 
 - **Sombra suave nos ícones**: sombra preta com intensidade ajustável de 0% a 100%
   (padrão 24%), deslocamento vertical de 2 px e desfoque de 4 px, aplicada ao
-  desenho dos ícones. O slider fica disponível ao ativar a sombra.
+  desenho dos ícones. O deslocamento horizontal e o vertical são ajustáveis de
+  −32 a 32 px (padrões: 0 e 2 px); o desfoque varia de 0 a 32 px (padrão: 4 px).
+  Os controles ficam disponíveis ao ativar a sombra. Os valores são em pixels
+  lógicos e acompanham a escala do monitor.
 - **Contorno do dock inspirado no Adwaita**: borda de 1 px ao redor do fundo
   do dock, acompanhando o raio dos cantos definido pelo tema. Usa branco a 15%
   em fundos escuros e preto a 12% em fundos claros.
@@ -69,7 +72,7 @@ efeitos sobrepostos.
 - UUID: `dash-to-dock-soft@local`
 - Schema: `org.gnome.shell.extensions.dash-to-dock-soft`
 - Configurações: `/org/gnome/shell/extensions/dash-to-dock-soft/`
-- Versão do fork: **8**
+- Versão do fork: **9**
 - Versões declaradas do GNOME Shell: **45–51**, herdadas do upstream.
 
 O UUID e o schema próprios preservam a instalação e as configurações originais.
@@ -83,7 +86,7 @@ O remoto `upstream` aponta para o projeto original.
 Na pasta que contém o ZIP:
 
 ```bash
-gnome-extensions install dash-to-dock-soft@local_v8.zip
+gnome-extensions install dash-to-dock-soft@local_v9.zip
 ```
 
 Encerre a sessão e entre novamente para que o GNOME Shell reconheça a nova extensão.
@@ -108,7 +111,7 @@ legada do upstream (por exemplo, ESLint 8).
 make
 make check
 node tests/dock-effects.cjs
-make zip-file VERSION=8
+make zip-file VERSION=9
 ```
 
 Para instalar a partir da árvore de código:
@@ -119,6 +122,26 @@ make install
 
 Também são suportados Dart Sass (`make SASS=dart`) e Ruby Sass
 (`make SASS=ruby`), conforme o Makefile original.
+
+## Novidade da versão 9
+
+Além da opacidade, o painel Aparência permite ajustar os deslocamentos
+horizontal e vertical e o desfoque da sombra dos ícones. Valores negativos
+movem a sombra para a esquerda ou para cima; desfoque zero produz uma sombra
+nítida. Os padrões anteriores de 0 px, 2 px e 4 px foram mantidos.
+
+A regra de sombra é carregada numa folha de estilo temporária, limitada a cada
+dock. Ela acompanha ícones novos sem substituir seus estilos inline. A folha
+é atualizada ao alterar os controles ou trocar o tema, e é removida ao
+desativar a sombra ou descarregar o fork. As traduções em português foram
+atualizadas.
+
+Validado numa sessão Wayland isolada do GNOME Shell 50.5: alterações ao vivo,
+valores negativos, desfoque zero, ícones recriados/adicionados, escala 2× e
+remoção da folha temporária. Os sliders GTK também passaram na verificação
+dos limites, padrões, sensibilidade e vínculo bidirecional. O blur não
+continuou repintando em repouso. Os resultados estão em
+[`validation/gnome50-shadow-results.json`](validation/gnome50-shadow-results.json).
 
 ## Correção da versão 8
 

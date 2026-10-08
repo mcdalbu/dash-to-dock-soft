@@ -801,3 +801,15 @@ msgstr "Raio dos cantos do desfoque (px)"
 #: Settings.ui
 msgid "Blur the background behind the dock while keeping icons sharp. Rounded corners require GNOME Rounded Blur when native support is unavailable."
 msgstr "Desfoca o fundo atrás do dock, mantendo os ícones nítidos. Os cantos arredondados precisam do GNOME Rounded Blur quando não há suporte nativo."
+
+#: Settings.ui
+msgid "Horizontal shadow offset (px)"
+msgstr "Deslocamento horizontal da sombra (px)"
+
+#: Settings.ui
+msgid "Vertical shadow offset (px)"
+msgstr "Deslocamento vertical da sombra (px)"
+
+#: Settings.ui
+msgid "Shadow blur (px)"
+msgstr "Desfoque da sombra (px)"

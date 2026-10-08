@@ -1,0 +1,59 @@
+{
+  "version": 9,
+  "gnome_shell": "50.5",
+  "environment": "Isolated headless Wayland session; software renderer; keyfile settings",
+  "shadow": {
+    "results": [
+      [
+        0,
+        2,
+        4
+      ],
+      [
+        -8,
+        12,
+        0
+      ],
+      [
+        32,
+        -32,
+        32
+      ]
+    ],
+    "newIcon": true,
+    "inlinePreserved": true,
+    "scale2": [
+      0,
+      4,
+      8
+    ],
+    "idleRepaints": 0,
+    "fileRemoved": true,
+    "appIcons": true
+  },
+  "gtk_preferences": {
+    "builder": "Settings.ui; no-op scope for unrelated callbacks",
+    "bindings": "Gio.Settings bidirectional values and shadow-enabled sensitivity",
+    "ranges": [
+      [
+        -32,
+        32
+      ],
+      [
+        -32,
+        32
+      ],
+      [
+        0,
+        32
+      ]
+    ],
+    "defaults": [
+      0,
+      2,
+      4
+    ],
+    "passed": true
+  },
+  "limitations": "Native style values were checked; this does not reproduce every GPU or user theme."
+}
