@@ -72,7 +72,7 @@ efeitos sobrepostos.
 - UUID: `dash-to-dock-soft@local`
 - Schema: `org.gnome.shell.extensions.dash-to-dock-soft`
 - Configurações: `/org/gnome/shell/extensions/dash-to-dock-soft/`
-- Versão do fork: **9**
+- Versão do fork: **10**
 - Versões declaradas do GNOME Shell: **45–51**, herdadas do upstream.
 
 O UUID e o schema próprios preservam a instalação e as configurações originais.
@@ -86,7 +86,7 @@ O remoto `upstream` aponta para o projeto original.
 Na pasta que contém o ZIP:
 
 ```bash
-gnome-extensions install dash-to-dock-soft@local_v9.zip
+gnome-extensions install dash-to-dock-soft@local_v10.zip
 ```
 
 Encerre a sessão e entre novamente para que o GNOME Shell reconheça a nova extensão.
@@ -111,7 +111,7 @@ legada do upstream (por exemplo, ESLint 8).
 make
 make check
 node tests/dock-effects.cjs
-make zip-file VERSION=9
+make zip-file VERSION=10
 ```
 
 Para instalar a partir da árvore de código:
@@ -122,6 +122,33 @@ make install
 
 Também são suportados Dart Sass (`make SASS=dart`) e Ruby Sass
 (`make SASS=ruby`), conforme o Makefile original.
+
+## Correção da versão 10
+
+O blur dinâmico captura pixels do framebuffer fora da região de dano do
+compositor. Em um redesenho parcial, esses pixels podem conter o dock do frame
+anterior, produzindo blocos retangulares durante hover, animações ou mudanças
+das janelas. Invalidar apenas a camada de blur não elimina essa causa.
+
+O fork agora desativa os redesenhos recortados durante cada frame já agendado
+de um monitor que contém blur visível. A configuração é restaurada depois
+da atualização do frame, ao desativar o blur e ao destruir o dock. Monitores
+sem blur, atores não mapeados e atores com opacidade zero não ativam a proteção.
+Docks simultâneos compartilham a proteção; flags já ativadas antes do frame
+são preservadas. São usadas as APIs Clutter atuais e Meta nas versões antigas.
+
+A proteção não solicita frames adicionais nem mantém um timer em repouso.
+Redesenhar o monitor inteiro aumenta o trabalho da GPU enquanto há atualizações
+com blur visível. Essa troca evita depender exclusivamente das notificações
+de estilo e de janela para prevenir os artefatos de captura parcial.
+
+Validado em sessão Wayland headless isolada do GNOME Shell 50.5 com GNOME
+Rounded Blur: 41 frames pintados com a proteção ativa, restauração após todos
+os frames e nenhuma pintura durante 1,5 s em repouso. A desativação removeu
+o guard e o ator de blur, com as flags restauradas. Resultados em
+`validation/gnome50-frame-guard-results.json` e captura em
+`validation/gnome50-frame-guard.png`. A captura particular do usuário não foi
+reproduzida nesta sessão; o teste verifica o novo caminho do compositor.
 
 ## Novidade da versão 9
 

@@ -49,6 +49,7 @@ class MockActor {
     queue_redraw() { this.redraws++; }
     get_transformed_position() { return [this.x, this.y]; }
     get_transformed_size() { return [this.width, this.height]; }
+    get_paint_opacity() { return this.opacity ?? 255; }
     set_position(x, y) { this.x = x; this.y = y; }
     set_size(width, height) { this.width = width; this.height = height; }
     destroy() {
@@ -62,8 +63,17 @@ class MockActor {
 const laters = new Map();
 let laterId = 0;
 let monotonicTime = 1000000;
+let drawFlags = 0;
+let flagAdds = 0;
+let flagRemoves = 0;
+const clippedFlag = 4;
+const clutter = {DrawDebugFlag: {DISABLE_CLIPPED_REDRAWS: clippedFlag},
+    get_debug_flags: () => [0, drawFlags, 0],
+    add_debug_flags: (_debug, draw) => {drawFlags |= draw; flagAdds++;},
+    remove_debug_flags: (_debug, draw) => {drawFlags &= ~draw; flagRemoves++;}};
 
 const sandbox = {imports: {signals: {addSignalMethods() {}}}, global: {stage: {}, window_group: {}, display: {}, get_window_actors: () => []},
+    Clutter: clutter,
     GObject: {signal_lookup: () => 1},
     GLib: {get_monotonic_time: () => monotonicTime},
     Gio: {FileCreateFlags: {REPLACE_DESTINATION: 1}, File: {new_tmp: () => [{
@@ -79,6 +89,49 @@ const sandbox = {imports: {signals: {addSignalMethods() {}}}, global: {stage: {}
         laterRemove: id => laters.delete(id)}};
 sandbox.BlurBackend = sandbox.Shell;
 vm.createContext(sandbox);
+const guardSource = fs.readFileSync(path.join(__dirname, '../blurRedrawGuard.js'), 'utf8')
+    .replace(/\bexport /g, '');
+vm.runInContext(guardSource + '\nthis.BlurRedrawGuard = BlurRedrawGuard;', sandbox);
+const guard = new sandbox.BlurRedrawGuard(clutter, {});
+const secondGuard = new sandbox.BlurRedrawGuard(clutter, {});
+const blurActor = new MockActor({x: 20, y: 30, width: 400, height: 64});
+const view = {layout: {x: 0, y: 0, width: 1920, height: 1080}};
+const otherView = {layout: {x: 1920, y: 0, width: 1920, height: 1080}};
+guard.begin(blurActor, otherView);
+assert.equal(drawFlags, 0, 'Leave unrelated monitor frames clipped');
+blurActor.opacity = 0;
+guard.begin(blurActor, view);
+assert.equal(drawFlags, 0, 'Leave invisible blur frames clipped');
+blurActor.opacity = 255;
+blurActor.mapped = false;
+guard.begin(blurActor, view);
+assert.equal(drawFlags, 0);
+blurActor.mapped = true;
+guard.begin(blurActor, view);
+secondGuard.begin(blurActor, view);
+assert.equal(drawFlags, clippedFlag);
+assert.equal(flagAdds, 1, 'Two docks share one frame guard');
+guard.end();
+assert.equal(drawFlags, clippedFlag, 'Keep guard until both docks finish');
+secondGuard.end();
+secondGuard.end();
+assert.equal(drawFlags, 0);
+assert.equal(flagRemoves, 1);
+assert.equal(blurActor.redraws, 0, 'Frame guard never schedules another redraw');
+drawFlags = clippedFlag | 16;
+guard.begin(blurActor, view);
+guard.end();
+assert.equal(drawFlags, clippedFlag | 16, 'Preserve existing compositor flags');
+drawFlags = 16;
+const legacyGuard = new sandbox.BlurRedrawGuard({DrawDebugFlag: clutter.DrawDebugFlag}, {
+    get_clutter_debug_flags: clutter.get_debug_flags,
+    add_clutter_debug_flags: clutter.add_debug_flags,
+    remove_clutter_debug_flags: clutter.remove_debug_flags});
+legacyGuard.begin(blurActor, view);
+assert.equal(drawFlags, clippedFlag | 16);
+legacyGuard.end();
+assert.equal(drawFlags, 16, 'Legacy API restores only the changed flag');
+drawFlags = 0;
 const backendSource = fs.readFileSync(path.join(__dirname, '../blurBackend.js'), 'utf8')
     .replace(/\bexport /g, '');
 vm.runInContext(backendSource + '\nthis.selectBlurBackend = selectBlurBackend;', sandbox);
@@ -346,6 +399,12 @@ assert.equal(b.manager._blurEffect.repaints, styleRepaints + 2, 'Child transitio
 monotonicTime += 150000;
 beforeUpdate();
 assert.equal(b.manager._blurEffect.repaints, styleRepaints + 2, 'No permanent frame repaint loop');
+const afterUpdate = [...b.signalBindings.values()].flat()
+    .find(binding => binding[1] === 'after-update')[2];
+afterUpdate();
+assert.equal(drawFlags, 0, 'Restore clipping after the frame');
+beforeUpdate(undefined, view);
+assert.equal(drawFlags, clippedFlag);
 const tileLabel = b.manager._blurDashActors.get(tile);
 const iconLabel = b.manager._blurDashActors.get(icon);
 dashBindings.find(binding => binding[1] === 'child-removed')[2](b.dock.dash, tile);
@@ -357,6 +416,7 @@ geometry();
 assert(b.manager._blurRepaintLater, 'Refresh the window footprint after moving away');
 const pendingRepaint = b.manager._blurRepaintLater;
 b.manager.destroy();
+assert.equal(drawFlags, 0, 'Destroying during a frame restores clipping');
 assert(!laters.has(pendingRepaint));
 assert.equal(b.manager._blurDashActors, null);
 assert.equal(b.manager._blurStyleUntil, 0);

@@ -13,6 +13,7 @@ import {
 
 import {Main} from './dependencies/shell/ui.js';
 import {loadBlurBackend} from './blurBackend.js';
+import {BlurRedrawGuard} from './blurRedrawGuard.js';
 
 import {
     Docking,
@@ -367,14 +368,17 @@ export class ThemeManager {
     }
 
     _startBlurRepaints() {
+        this._blurRedrawGuard = new BlurRedrawGuard(Clutter, Meta);
         this._blurDashActors = new Map();
         this._blurStyleUntil = 0;
         this._trackBlurDashActor(this._dash);
         this._signalsHandler.addWithLabel(Labels.BLUR_DASH,
-            [global.stage, 'before-update', () => {
+            [global.stage, 'before-update', (_stage, view) => {
+                this._blurRedrawGuard.begin(this._blurActor, view);
                 if (GLib.get_monotonic_time() < this._blurStyleUntil)
                     this._repaintBlur();
-            }]);
+            }],
+            [global.stage, 'after-update', () => this._blurRedrawGuard.end()]);
         this._blurWindows = new Map();
         const added = GObject.signal_lookup('child-added', global.window_group) ? 'child-added' : 'actor-added';
         const removed = added === 'child-added' ? 'child-removed' : 'actor-removed';
@@ -394,6 +398,8 @@ export class ThemeManager {
     }
 
     _stopBlurRepaints() {
+        this._blurRedrawGuard?.end();
+        this._blurRedrawGuard = null;
         if (this._blurDashActors) {
             for (const label of this._blurDashActors.values())
                 this._signalsHandler.removeWithLabel(label);

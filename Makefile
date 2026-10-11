@@ -27,6 +27,7 @@ EXTRA_MODULES = \
                 prefs.js \
                 theming.js \
                 blurBackend.js \
+                blurRedrawGuard.js \
                 utils.js \
                 dbusmenuUtils.js \
                 desktopIconsIntegration.js \

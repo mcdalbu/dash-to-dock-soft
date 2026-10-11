@@ -1,0 +1,16 @@
+{
+  "shell": "50.5",
+  "mapped": true,
+  "opacity": 255,
+  "backend": "function Blur_BlurEffect() {\n    [native code]\n}",
+  "paintFrames": 41,
+  "guardedPaintFrames": 41,
+  "restoredFrames": 41,
+  "unguardedPaintFrames": 0,
+  "screenshot": "blur-frame.png",
+  "idlePaintFrames": 0,
+  "flagsAtRest": 0,
+  "guardRemoved": true,
+  "blurRemoved": true,
+  "flagsAfterDisable": 0
+}
