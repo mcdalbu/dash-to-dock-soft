@@ -12,6 +12,7 @@ import {
 } from './dependencies/gi.js';
 
 import {Main} from './dependencies/shell/ui.js';
+import {LoginManager} from './dependencies/shell/misc.js';
 import {loadBlurBackend} from './blurBackend.js';
 import {BlurRedrawGuard} from './blurRedrawGuard.js';
 
@@ -40,6 +41,7 @@ const Labels = Object.freeze({
     THEME_CHANGED: Symbol('theme-changed'),
     BLUR_WINDOWS: Symbol('blur-windows'),
     BLUR_DASH: Symbol('blur-dash'),
+    BLUR_SESSION: Symbol('blur-session'),
 });
 
 export const PositionStyleClass = Object.freeze([
@@ -134,9 +136,8 @@ export class ThemeManager {
             this._onOverviewHiding();
 
         this._signalsHandler.add(this._dash._background, 'destroy', () => this._disableBlur());
-        for (const actor of [this._dash, this._dash._background]) {
+        for (const actor of [this._dash, this._dash._background])
             this._signalsHandler.add(actor, 'notify::allocation', () => this._queueBlurGeometry());
-        }
 
         // destroy themeManager when the managed actor is destroyed (e.g. extension unload)
         // in order to disconnect signals
@@ -368,6 +369,27 @@ export class ThemeManager {
             this._queueBlurRepaint();
     }
 
+    _queueBlurRecovery() {
+        // Resume can invalidate the backend's framebuffer cache even when the
+        // dock allocation and blur parameters have not changed. If the dock is
+        // still hidden by the lock screen, recover when it is mapped again.
+        this._blurRecoveryPending = true;
+        if (this._blurSleeping || Main.sessionMode.isLocked ||
+            !this._blurActor?.mapped || this._blurRecoveryLater)
+            return;
+        this._blurRecoveryLater = Utils.laterAdd(Meta.LaterType.BEFORE_REDRAW, () => {
+            this._blurRecoveryLater = 0;
+            if (this._blurSleeping || Main.sessionMode.isLocked || !this._blurActor?.mapped)
+                return;
+            this._blurRecoveryPending = false;
+            this._blurRedrawGuard.end();
+            this._blurActor.remove_effect(this._blurEffect);
+            this._blurEffect = this._createBlurEffect();
+            this._blurActor.add_effect_with_name('soft-dock-blur', this._blurEffect);
+            this._updateBlur();
+        });
+    }
+
     _startBlurRepaints() {
         this._blurRedrawGuard = new BlurRedrawGuard(Clutter, Meta);
         this._blurDashActors = new Map();
@@ -380,8 +402,36 @@ export class ThemeManager {
                     this._repaintBlur();
             }],
             [global.stage, 'after-update', () => this._blurRedrawGuard.end()]);
+        const loginManager = LoginManager.getLoginManager();
+        this._blurSleeping = loginManager.preparingForSleep ?? false;
+        this._blurRecoveryPending = this._blurSleeping;
+        this._signalsHandler.addWithLabel(Labels.BLUR_SESSION,
+            [loginManager, 'prepare-for-sleep', (_manager, sleeping) => {
+                this._blurSleeping = sleeping;
+                this._blurRedrawGuard.end();
+                this._queueBlurRecovery();
+            }],
+            [Main.sessionMode, 'updated', () => {
+                if (Main.sessionMode.isLocked) {
+                    this._blurRecoveryPending = true;
+                    this._blurRedrawGuard.end();
+                } else if (this._blurRecoveryPending) {
+                    this._queueBlurRecovery();
+                }
+            }],
+            [this._blurActor, 'notify::mapped', () => {
+                if (!this._blurActor.mapped) {
+                    this._blurRecoveryPending = true;
+                    this._blurRedrawGuard.end();
+                } else if (this._blurRecoveryPending) {
+                    this._queueBlurRecovery();
+                } else {
+                    this._queueBlurGeometry();
+                }
+            }]);
         this._blurWindows = new Map();
-        const added = GObject.signal_lookup('child-added', global.window_group) ? 'child-added' : 'actor-added';
+        const added = GObject.signal_lookup('child-added', global.window_group)
+            ? 'child-added' : 'actor-added';
         const removed = added === 'child-added' ? 'child-removed' : 'actor-removed';
         this._signalsHandler.addWithLabel(Labels.BLUR_WINDOWS,
             [global.window_group, added, (_group, actor) => this._trackBlurWindow(actor)],
@@ -399,6 +449,13 @@ export class ThemeManager {
     }
 
     _stopBlurRepaints() {
+        this._signalsHandler.removeWithLabel(Labels.BLUR_SESSION);
+        if (this._blurRecoveryLater) {
+            Utils.laterRemove(this._blurRecoveryLater);
+            this._blurRecoveryLater = 0;
+        }
+        this._blurRecoveryPending = false;
+        this._blurSleeping = false;
         this._blurRedrawGuard?.end();
         this._blurRedrawGuard = null;
         if (this._blurDashActors) {
@@ -450,6 +507,16 @@ export class ThemeManager {
         this._blurEffect = null;
     }
 
+    _createBlurEffect() {
+        const properties = BlurBackend.BlurEffect.list_properties().map(property => property.name);
+        this._blurRadiusProperty = properties.includes('radius') ? 'radius' : 'sigma';
+        this._blurHasCornerRadius = properties.includes('corner-radius');
+        return new BlurBackend.BlurEffect({
+            mode: BlurBackend.BlurMode.BACKGROUND,
+            brightness: 0.85,
+        });
+    }
+
     _updateBlur() {
         const {settings} = Docking.DockManager;
         if (!settings.dockBlur) {
@@ -461,13 +528,7 @@ export class ThemeManager {
             const parent = this._dash.get_parent();
             if (!parent)
                 return;
-            const properties = BlurBackend.BlurEffect.list_properties().map(property => property.name);
-            this._blurRadiusProperty = properties.includes('radius') ? 'radius' : 'sigma';
-            this._blurHasCornerRadius = properties.includes('corner-radius');
-            this._blurEffect = new BlurBackend.BlurEffect({
-                mode: BlurBackend.BlurMode.BACKGROUND,
-                brightness: 0.85,
-            });
+            this._blurEffect = this._createBlurEffect();
             // The dash uses offscreen rendering. Sample the stage backdrop
             // outside that subtree, underneath both the tint and the icons.
             this._blurGroup = new Meta.BackgroundGroup({
@@ -487,9 +548,8 @@ export class ThemeManager {
         const radius = settings.dockBlurRadius * scale;
         this._blurEffect[this._blurRadiusProperty] =
             this._blurRadiusProperty === 'radius' ? radius : radius / 2;
-        if (this._blurHasCornerRadius) {
+        if (this._blurHasCornerRadius)
             this._blurEffect.corner_radius = settings.dockBlurCornerRadius * scale;
-        }
         this._updateBlurGeometry();
         this._queueBlurGeometry();
     }

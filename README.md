@@ -73,7 +73,7 @@ efeitos sobrepostos.
 - UUID: `dash-to-dock-soft@local`
 - Schema: `org.gnome.shell.extensions.dash-to-dock-soft`
 - Configurações: `/org/gnome/shell/extensions/dash-to-dock-soft/`
-- Versão do fork: **11**
+- Versão do fork: **12**
 - Versões declaradas do GNOME Shell: **45–51**, herdadas do upstream.
 
 O UUID e o schema próprios preservam a instalação e as configurações originais.
@@ -87,7 +87,7 @@ O remoto `upstream` aponta para o projeto original.
 Na pasta que contém o ZIP:
 
 ```bash
-gnome-extensions install dash-to-dock-soft@local_v11.zip
+gnome-extensions install dash-to-dock-soft@local_v12.zip
 ```
 
 Encerre a sessão e entre novamente para que o GNOME Shell reconheça a nova extensão.
@@ -112,7 +112,7 @@ legada do upstream (por exemplo, ESLint 8).
 make
 make check
 node tests/dock-effects.cjs
-make zip-file VERSION=11
+make zip-file VERSION=12
 ```
 
 Para instalar a partir da árvore de código:
@@ -123,6 +123,28 @@ make install
 
 Também são suportados Dart Sass (`make SASS=dart`) e Ruby Sass
 (`make SASS=ruby`), conforme o Makefile original.
+
+## Correção da versão 12
+
+O blur agora acompanha a suspensão, o desbloqueio e o reaparecimento de seu
+ator. Quando o dock pode voltar a ser pintado, o efeito é recriado para
+descartar os recursos de captura anteriores à suspensão. A posição, o tamanho,
+a intensidade e o raio dos cantos são reaplicados usando os valores atuais.
+
+A recuperação aguarda o dock estar mapeado e a sessão desbloqueada. Eventos
+simultâneos são agrupados em um callback antes do redesenho, sem timer nem
+repintura contínua. Desativar o blur ou destruir o dock cancela a recuperação
+pendente e desconecta os sinais da sessão.
+
+Os testes de regressão simulam retorno da suspensão com e sem bloqueio,
+desbloqueio antes do mapeamento, ocultação durante uma recuperação agendada,
+mudança de geometria, escala 2× e desativação com trabalho pendente. A suspensão
+real e o artefato específico da captura ainda precisam ser confirmados no
+computador do usuário. A validação em uma sessão Wayland headless isolada do
+GNOME Shell 50.5 com GNOME Rounded Blur confirmou a substituição do efeito após
+um retorno simulado, o reaparecimento do ator, a geometria e os cantos corretos,
+zero frames em 1,5 s de repouso e a limpeza ao desativar. Resultados em
+`validation/gnome50-resume-results.json`.
 
 ## Novidade da versão 11
 

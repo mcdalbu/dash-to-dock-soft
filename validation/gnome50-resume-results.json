@@ -1,0 +1,21 @@
+{
+  "hiddenResume": true,
+  "visibleResume": true,
+  "backend": "Blur_BlurEffect",
+  "geometry": [
+    0,
+    4,
+    537,
+    80
+  ],
+  "idleFrames": 0,
+  "cleanup": true,
+  "pass": true,
+  "shell": "GNOME Shell 50.5",
+  "session": "isolated headless Wayland",
+  "simulatedResume": true,
+  "physicalSuspendTested": false,
+  "originalScreenshotReproduced": false,
+  "unitTests": "tests/dock-effects.cjs: PASS",
+  "lint": "make check (ESLint 8.57.1): PASS"
+}

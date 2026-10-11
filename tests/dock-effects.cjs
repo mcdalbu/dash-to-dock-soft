@@ -46,6 +46,11 @@ class MockActor {
         child.parent = this;
     }
     add_effect_with_name(name, effect) { this.effects.set(name, effect); }
+    remove_effect(effect) {
+        const entry = [...this.effects].find(([, value]) => value === effect);
+        assert(entry, 'Remove only an attached effect');
+        this.effects.delete(entry[0]);
+    }
     queue_redraw() { this.redraws++; }
     get_transformed_position() { return [this.x, this.y]; }
     get_transformed_size() { return [this.width, this.height]; }
@@ -73,6 +78,8 @@ const clutter = {DrawDebugFlag: {DISABLE_CLIPPED_REDRAWS: clippedFlag},
     remove_debug_flags: (_debug, draw) => {drawFlags &= ~draw; flagRemoves++;}};
 
 const sandbox = {imports: {signals: {addSignalMethods() {}}}, global: {stage: {}, window_group: {}, display: {}, get_window_actors: () => []},
+    Main: {sessionMode: {isLocked: false}},
+    LoginManager: {getLoginManager: () => loginManager},
     Clutter: clutter,
     GObject: {signal_lookup: () => 1},
     GLib: {get_monotonic_time: () => monotonicTime},
@@ -88,6 +95,7 @@ const sandbox = {imports: {signals: {addSignalMethods() {}}}, global: {stage: {}
         laterAdd: (_type, callback) => {laters.set(++laterId, callback); return laterId;},
         laterRemove: id => laters.delete(id)}};
 sandbox.BlurBackend = sandbox.Shell;
+const loginManager = {preparingForSleep: false};
 vm.createContext(sandbox);
 const guardSource = fs.readFileSync(path.join(__dirname, '../blurRedrawGuard.js'), 'utf8')
     .replace(/\bexport /g, '');
@@ -427,4 +435,87 @@ assert.equal(b.manager._blurDashActors, null);
 assert.equal(b.manager._blurStyleUntil, 0);
 assert.equal(b.signalBindings.size, 0, 'Remove window and global handlers on teardown');
 
-console.log('PASS: separate backdrop layer/geometry, adjustable shadows, dock surface, independent options, transparency and hover transitions, bounded repaint/cleanup, scale and API compatibility');
+// Resume while locked must discard cached framebuffer resources only once the
+// dock can be painted, with current geometry/settings and no polling timer.
+function flushLaters() {
+    while (laters.size) {
+        for (const [id, callback] of [...laters]) {
+            if (laters.delete(id)) callback();
+        }
+    }
+}
+function handler(dock, object, signal) {
+    return [...dock.signalBindings.values()].flat()
+        .find(binding => binding[0] === object && binding[1] === signal)[2];
+}
+context.scale_factor = 2;
+const resumed = createDock();
+resumed.manager._updateBlur();
+flushLaters();
+const staleEffect = resumed.manager._blurEffect;
+const backdrop = resumed.manager._blurActor;
+const sleepChanged = handler(resumed, loginManager, 'prepare-for-sleep');
+const sessionChanged = handler(resumed, sandbox.Main.sessionMode, 'updated');
+const mappedChanged = handler(resumed, backdrop, 'notify::mapped');
+sleepChanged(loginManager, true);
+assert.equal(resumed.manager._blurRecoveryLater || 0, 0, 'No recovery frame while sleeping');
+sandbox.Main.sessionMode.isLocked = true;
+sessionChanged();
+backdrop.mapped = false;
+mappedChanged();
+sleepChanged(loginManager, false);
+assert.equal(resumed.manager._blurEffect, staleEffect, 'Defer recovery while locked and unmapped');
+sandbox.Main.sessionMode.isLocked = false;
+sessionChanged();
+assert.equal(resumed.manager._blurRecoveryLater || 0, 0, 'Unlock may precede actor mapping');
+resumed.background.y = 42;
+resumed.background.width = 480;
+backdrop.mapped = true;
+mappedChanged();
+const recovery = resumed.manager._blurRecoveryLater;
+sessionChanged();
+sleepChanged(loginManager, false);
+assert.equal(resumed.manager._blurRecoveryLater, recovery, 'Coalesce wake/unlock/map signals');
+flushLaters();
+assert.notEqual(resumed.manager._blurEffect, staleEffect, 'Replace the cached effect after resume');
+assert.equal(resumed.manager._blurActor, backdrop, 'Keep the existing actor and its signal handlers');
+assert.equal(backdrop.effects.size, 1);
+assert.equal(resumed.manager._blurEffect.mode, 42);
+assert.equal(resumed.manager._blurEffect.radius, settings.dockBlurRadius * 2);
+assert.equal(resumed.manager._blurEffect.corner_radius, settings.dockBlurCornerRadius * 2);
+assert.equal(backdrop.y, 60, 'Use the post-unlock allocation');
+assert.equal(backdrop.width, 480);
+assert(resumed.manager._blurEffect.repaints > 0, 'Invalidate the recovered effect');
+assert.equal(resumed.manager._blurRecoveryPending, false);
+assert.equal(laters.size, 0, 'Recovery settles without an idle loop');
+
+// Suspend without screen locking, and hide again before a queued recovery.
+const unlockedEffect = resumed.manager._blurEffect;
+sleepChanged(loginManager, true);
+sleepChanged(loginManager, false);
+backdrop.mapped = false;
+mappedChanged();
+flushLaters();
+assert.equal(resumed.manager._blurEffect, unlockedEffect);
+assert(resumed.manager._blurRecoveryPending);
+backdrop.mapped = true;
+mappedChanged();
+flushLaters();
+assert.notEqual(resumed.manager._blurEffect, unlockedEffect);
+
+sleepChanged(loginManager, false);
+const cancelledRecovery = resumed.manager._blurRecoveryLater;
+settings.dockBlur = false;
+resumed.manager._updateBlur();
+assert(!laters.has(cancelledRecovery), 'Disable cancels pending recovery');
+assert.equal(resumed.signalBindings.size, 0, 'Disable disconnects sleep/session/map listeners');
+settings.dockBlur = true;
+resumed.manager._updateBlur();
+sleepChanged(loginManager, false);
+resumed.manager.destroy();
+flushLaters();
+assert.equal(resumed.manager._blurEffect, null, 'Destroy cannot resurrect blur');
+assert.equal(resumed.signalBindings.size, 0);
+assert.equal(drawFlags, 0);
+
+console.log('PASS: backdrop geometry, adjustable shadows/outline, transparency, hover, suspend/unlock/remap recovery, bounded repaint/cleanup, scale and API compatibility');
