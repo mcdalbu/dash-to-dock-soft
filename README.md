@@ -16,8 +16,9 @@ Em **Preferências → Aparência**:
   Os controles ficam disponíveis ao ativar a sombra. Os valores são em pixels
   lógicos e acompanham a escala do monitor.
 - **Contorno do dock inspirado no Adwaita**: borda de 1 px ao redor do fundo
-  do dock, acompanhando o raio dos cantos definido pelo tema. Usa branco a 15%
-  em fundos escuros e preto a 12% em fundos claros.
+  do dock, acompanhando o raio dos cantos definido pelo tema. Usa branco em
+  fundos escuros e preto em fundos claros, com intensidade ajustável de 0% a
+  100% (padrão 15%). O slider fica disponível ao ativar o contorno.
 - **Desfoque atrás do dock**: blur dinâmico nativo do GNOME Shell, aplicado
   em uma camada separada atrás do dock. Os ícones continuam nítidos. Há um controle de
   intensidade de 1 a 100, com padrão 30, ajustado à escala do monitor. O raio
@@ -72,7 +73,7 @@ efeitos sobrepostos.
 - UUID: `dash-to-dock-soft@local`
 - Schema: `org.gnome.shell.extensions.dash-to-dock-soft`
 - Configurações: `/org/gnome/shell/extensions/dash-to-dock-soft/`
-- Versão do fork: **10**
+- Versão do fork: **11**
 - Versões declaradas do GNOME Shell: **45–51**, herdadas do upstream.
 
 O UUID e o schema próprios preservam a instalação e as configurações originais.
@@ -86,7 +87,7 @@ O remoto `upstream` aponta para o projeto original.
 Na pasta que contém o ZIP:
 
 ```bash
-gnome-extensions install dash-to-dock-soft@local_v10.zip
+gnome-extensions install dash-to-dock-soft@local_v11.zip
 ```
 
 Encerre a sessão e entre novamente para que o GNOME Shell reconheça a nova extensão.
@@ -111,7 +112,7 @@ legada do upstream (por exemplo, ESLint 8).
 make
 make check
 node tests/dock-effects.cjs
-make zip-file VERSION=10
+make zip-file VERSION=11
 ```
 
 Para instalar a partir da árvore de código:
@@ -122,6 +123,25 @@ make install
 
 Também são suportados Dart Sass (`make SASS=dart`) e Ruby Sass
 (`make SASS=ruby`), conforme o Makefile original.
+
+## Novidade da versão 11
+
+O painel Aparência inclui o slider **Intensidade do contorno (%)**, de 0% a
+100%, com padrão de 15%. Zero deixa a borda transparente e 100% a deixa opaca.
+O ajuste é salvo nas configurações e aplicado ao vivo, inclusive após mudanças
+da transparência dinâmica. O contorno mantém a espessura de 1 px e os cantos
+do tema, usando branco em fundos escuros e preto em fundos claros.
+
+O padrão preserva os 15% anteriores em fundos escuros; em fundos claros,
+substitui os 12% fixos pelos mesmos 15% definidos no slider. O controle fica
+desabilitado quando o contorno está desligado, sem apagar o valor salvo.
+
+Validado em sessão Wayland isolada do GNOME Shell 50.5: 0%, 15%, 65% e 100%
+em fundos claros e escuros, sem alterar a opacidade do preenchimento. O teste
+GTK construiu o controle de `Settings.ui` e executou os vínculos de `prefs.js`,
+verificando atualização bidirecional, limites, sensibilidade e restauração
+do padrão. Resultados em `validation/gnome50-outline-results.json` e captura
+do controle em `validation/gnome50-outline-preferences.png`.
 
 ## Correção da versão 10
 

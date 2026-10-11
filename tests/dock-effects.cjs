@@ -8,7 +8,7 @@ const assert = require('node:assert/strict');
 const settings = {applyCustomTheme: false, customThemeShrink: false,
     runningIndicatorStyle: 0, forceStraightCorner: false,
     iconShadow: false, iconShadowIntensity: 24, iconShadowOffsetX: 0, iconShadowOffsetY: 2, iconShadowBlur: 4,
-    dockOutline: false, dockBlur: false, dockBlurRadius: 30, dockBlurCornerRadius: 24};
+    dockOutline: false, dockOutlineIntensity: 15, dockBlur: false, dockBlurRadius: 30, dockBlurCornerRadius: 24};
 function createTheme() {
     return {styles: new Map(), loads: 0,
         load_stylesheet(file) {this.styles.set(file, file.content); this.loads++; this.onLoad?.();},
@@ -294,14 +294,19 @@ Object.assign(transparency, {_dock: b.dock, _dockActor: b.dock, _backgroundActor
     _opaque_style: 'border-radius: 24px;background-color: rgba(255, 255, 255, 1);border-color: black;',
     _transparent_style: 'border-radius: 24px;background-color: rgba(25, 25, 25, 0.1);border-color: black;',
     emit() {}});
-for (const near of [true, false, true]) {
-    transparency._dockIsNear = () => near;
-    transparency._updateSolidStyle();
-    const style = b.background.get_style();
-    assert(style.includes(near ? 'border: 1px solid rgba(0, 0, 0, 0.12)' :
-        'border: 1px solid rgba(255, 255, 255, 0.15)'));
-    assert.equal(b.background.get_theme_node().get_background_color().alpha, near ? 255 : 25.5);
+for (const intensity of [0, 15, 65, 100]) {
+    settings.dockOutlineIntensity = intensity;
+    for (const near of [true, false, true]) {
+        transparency._dockIsNear = () => near;
+        transparency._updateSolidStyle();
+        const style = b.background.get_style();
+        const color = near ? '0, 0, 0' : '255, 255, 255';
+        assert(style.includes(`border: 1px solid rgba(${color}, ${intensity / 100})`));
+        assert(style.includes('border-radius: 24px;'));
+        assert.equal(b.background.get_theme_node().get_background_color().alpha, near ? 255 : 25.5);
+    }
 }
+settings.dockOutlineIntensity = 15;
 
 // Blur must preserve the full opacity range, without capping or quantizing it.
 for (const alpha of [0, 0.1, 0.3, 0.6, 0.85, 1]) {
@@ -344,7 +349,7 @@ const originalHandler = b.manager._signalsHandler;
 b.manager._signalsHandler = {addWithLabel: (label, ...bindings) => {signals = bindings;}};
 b.manager._bindSettingsChanges();
 b.manager._signalsHandler = originalHandler;
-for (const key of ['icon-shadow', 'icon-shadow-intensity', 'icon-shadow-offset-x', 'icon-shadow-offset-y', 'icon-shadow-blur', 'dock-outline', 'dock-blur', 'dock-blur-radius', 'dock-blur-corner-radius', 'background-color'])
+for (const key of ['icon-shadow', 'icon-shadow-intensity', 'icon-shadow-offset-x', 'icon-shadow-offset-y', 'icon-shadow-blur', 'dock-outline', 'dock-outline-intensity', 'dock-blur', 'dock-blur-radius', 'dock-blur-corner-radius', 'background-color'])
     assert(signals.some(binding => binding[1] === `changed::${key}`));
 // GNOME Rounded Blur must provide both the effect class and matching mode enum.
 sandbox.BlurBackend = sandbox.selectBlurBackend(compatibility, native, typeName);

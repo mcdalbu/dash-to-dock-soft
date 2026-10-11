@@ -571,3 +571,7 @@ msgstr "Deslocamento vertical da sombra (px)"
 #: Settings.ui
 msgid "Shadow blur (px)"
 msgstr "Desfoque da sombra (px)"
+
+#: Settings.ui
+msgid "Outline intensity (%)"
+msgstr "Intensidade do contorno (%)"

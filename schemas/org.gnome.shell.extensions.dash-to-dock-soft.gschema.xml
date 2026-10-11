@@ -85,6 +85,12 @@
       <summary>Adwaita-inspired dock outline</summary>
       <description>Add a thin outline around the dock background, preserving its corner radius and adapting contrast to its color.</description>
     </key>
+    <key type="i" name="dock-outline-intensity">
+      <default>15</default>
+      <range min="0" max="100"/>
+      <summary>Dock outline intensity</summary>
+      <description>Opacity of the dock outline, from 0 to 100 percent. The outline color adapts to the dock background.</description>
+    </key>
     <key type="b" name="dock-blur">
       <default>false</default>
       <summary>Blur behind the dock</summary>

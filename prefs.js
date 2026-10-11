@@ -997,6 +997,14 @@ const DockSettings = GObject.registerClass({
             this._builder.get_object('dock_outline_switch'),
             'active',
             Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('dock-outline-intensity',
+            this._builder.get_object('dock_outline_intensity_adjustment'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('dock-outline',
+            this._builder.get_object('dock_outline_intensity_scale'),
+            'sensitive',
+            Gio.SettingsBindFlags.GET);
 
         this._settings.bind('dock-blur',
             this._builder.get_object('dock_blur_switch'),

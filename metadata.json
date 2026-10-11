@@ -14,7 +14,7 @@
     "original-author": "micxgx@gmail.com",
     "url": "https://github.com/mcdalbu/dash-to-dock-soft",
     "gettext-domain": "dashtodock",
-    "version": 10,
+    "version": 11,
     "settings-schema": "org.gnome.shell.extensions.dash-to-dock-soft",
     "upstream-url": "https://github.com/micheleg/dash-to-dock",
     "fork-maintainer": "mcdalbu"

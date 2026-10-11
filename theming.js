@@ -67,7 +67,8 @@ function applyDockSurfaceStyle(dock) {
     if (settings.dockOutline) {
         const color = background.get_theme_node().get_background_color();
         const luminance = (0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue) / 255;
-        const borderColor = luminance > 0.5 ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.15)';
+        const alpha = settings.dockOutlineIntensity / 100;
+        const borderColor = luminance > 0.5 ? `rgba(0, 0, 0, ${alpha})` : `rgba(255, 255, 255, ${alpha})`;
         style += `border: 1px solid ${borderColor};`;
     }
     if (settings.dockBlur)
@@ -659,6 +660,7 @@ export class ThemeManager {
             'icon-shadow-offset-y',
             'icon-shadow-blur',
             'dock-outline',
+            'dock-outline-intensity',
             'dock-blur',
             'dock-blur-radius',
             'dock-blur-corner-radius',

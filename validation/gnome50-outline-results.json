@@ -1,0 +1,82 @@
+{
+  "version": 11,
+  "shell": "50.5",
+  "mapped": true,
+  "values": [
+    {
+      "background": "#191919",
+      "intensity": 0,
+      "border": "#ffffff00",
+      "fill": "#1919194c",
+      "borderWidth": 1
+    },
+    {
+      "background": "#191919",
+      "intensity": 15,
+      "border": "#ffffff26",
+      "fill": "#1919194c",
+      "borderWidth": 1
+    },
+    {
+      "background": "#191919",
+      "intensity": 65,
+      "border": "#ffffffa6",
+      "fill": "#1919194c",
+      "borderWidth": 1
+    },
+    {
+      "background": "#191919",
+      "intensity": 100,
+      "border": "#ffffffff",
+      "fill": "#1919194c",
+      "borderWidth": 1
+    },
+    {
+      "background": "#ffffff",
+      "intensity": 0,
+      "border": "#00000000",
+      "fill": "#ffffff4c",
+      "borderWidth": 1
+    },
+    {
+      "background": "#ffffff",
+      "intensity": 15,
+      "border": "#00000026",
+      "fill": "#ffffff4c",
+      "borderWidth": 1
+    },
+    {
+      "background": "#ffffff",
+      "intensity": 65,
+      "border": "#000000a6",
+      "fill": "#ffffff4c",
+      "borderWidth": 1
+    },
+    {
+      "background": "#ffffff",
+      "intensity": 100,
+      "border": "#000000ff",
+      "fill": "#ffffff4c",
+      "borderWidth": 1
+    }
+  ],
+  "disabled": true,
+  "retainedIntensity": 65,
+  "reenabled": true,
+  "gtkPreferences": {
+    "passed": true,
+    "range": [
+      0,
+      100
+    ],
+    "default": 15,
+    "bidirectional": true,
+    "sensitivity": true,
+    "clamps": true,
+    "reset": true,
+    "savedWhileDisabled": true,
+    "bindings": "Executed outline bindings from prefs.js"
+  },
+  "blurActive": true,
+  "passed": true
+}
