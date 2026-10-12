@@ -1,0 +1,258 @@
+{
+  "environment": "GNOME Shell 50.5, isolated Wayland headless session",
+  "method": "Translate dash by -24px, scale vertically to 0.8, invoke blur and dock resume recovery; also test partial autohide. No physical suspend.",
+  "baselineV13": {
+    "records": [
+      {
+        "name": "normal",
+        "background": [
+          371,
+          636,
+          537,
+          80
+        ],
+        "blur": [
+          371,
+          636,
+          537,
+          80
+        ],
+        "dash": [
+          371,
+          632,
+          537,
+          88
+        ],
+        "clip": [
+          0,
+          0,
+          537,
+          88
+        ]
+      },
+      {
+        "name": "translated",
+        "background": [
+          371,
+          612,
+          537,
+          80
+        ],
+        "blur": [
+          371,
+          636,
+          537,
+          80
+        ],
+        "dash": [
+          371,
+          608,
+          537,
+          88
+        ],
+        "clip": [
+          0,
+          0,
+          537,
+          88
+        ]
+      },
+      {
+        "name": "resumed",
+        "background": [
+          371,
+          636,
+          537,
+          80
+        ],
+        "blur": [
+          371,
+          636,
+          537,
+          80
+        ],
+        "dash": [
+          371,
+          632,
+          537,
+          88
+        ],
+        "clip": [
+          0,
+          0,
+          537,
+          88
+        ]
+      }
+    ],
+    "frames": 0
+  },
+  "v14": {
+    "records": [
+      {
+        "name": "normal",
+        "background": [
+          370,
+          636,
+          539,
+          80
+        ],
+        "blur": [
+          370,
+          636.00390625,
+          539,
+          80
+        ],
+        "dash": [
+          370,
+          632,
+          539,
+          88
+        ],
+        "clip": [
+          0,
+          0,
+          539,
+          88
+        ]
+      },
+      {
+        "name": "translated",
+        "background": [
+          370,
+          612,
+          539,
+          80
+        ],
+        "blur": [
+          370,
+          612,
+          539,
+          80
+        ],
+        "dash": [
+          370,
+          608,
+          539,
+          88
+        ],
+        "clip": [
+          0,
+          0,
+          539,
+          88
+        ]
+      },
+      {
+        "name": "scaled",
+        "background": [
+          370,
+          611.19921875,
+          539,
+          64
+        ],
+        "blur": [
+          370,
+          611.19921875,
+          539,
+          64
+        ],
+        "dash": [
+          370,
+          608,
+          539,
+          70.3984375
+        ],
+        "clip": [
+          0,
+          0,
+          539,
+          88
+        ]
+      },
+      {
+        "name": "resumed",
+        "background": [
+          370,
+          636,
+          539,
+          80
+        ],
+        "blur": [
+          370,
+          636,
+          539,
+          80
+        ],
+        "dash": [
+          370,
+          632,
+          539,
+          88
+        ],
+        "clip": [
+          0,
+          0,
+          539,
+          88
+        ]
+      },
+      {
+        "name": "partially-hidden",
+        "background": [
+          370,
+          678,
+          539,
+          80
+        ],
+        "blur": [
+          370,
+          678,
+          539,
+          80
+        ],
+        "dash": [
+          370,
+          678,
+          539,
+          84
+        ],
+        "clip": [
+          0,
+          0,
+          539,
+          42
+        ]
+      },
+      {
+        "name": "autohide-resumed",
+        "background": [
+          370,
+          636,
+          539,
+          80
+        ],
+        "blur": [
+          370,
+          636,
+          539,
+          80
+        ],
+        "dash": [
+          370,
+          636,
+          539,
+          84
+        ],
+        "clip": [
+          0,
+          0,
+          539,
+          84
+        ]
+      }
+    ],
+    "frames": 0,
+    "physicalSuspendTested": false
+  }
+}

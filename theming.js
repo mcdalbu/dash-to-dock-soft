@@ -374,12 +374,13 @@ export class ThemeManager {
         // dock allocation and blur parameters have not changed. If the dock is
         // still hidden by the lock screen, recover when it is mapped again.
         this._blurRecoveryPending = true;
-        if (this._blurSleeping || Main.sessionMode.isLocked ||
+        if (this._blurSleeping || Main.sessionMode.isLocked || Main.screenShield?.active ||
             !this._blurActor?.mapped || this._blurRecoveryLater)
             return;
         this._blurRecoveryLater = Utils.laterAdd(Meta.LaterType.BEFORE_REDRAW, () => {
             this._blurRecoveryLater = 0;
-            if (this._blurSleeping || Main.sessionMode.isLocked || !this._blurActor?.mapped)
+            if (this._blurSleeping || Main.sessionMode.isLocked || Main.screenShield?.active ||
+                !this._blurActor?.mapped)
                 return;
             this._blurRecoveryPending = false;
             this._blurRedrawGuard.end();
@@ -401,6 +402,9 @@ export class ThemeManager {
                 if (GLib.get_monotonic_time() < this._blurStyleUntil)
                     this._repaintBlur();
             }],
+            // Translations/scaling need not emit notify::allocation. Follow
+            // the background after layout on frames already being drawn.
+            [global.stage, 'before-paint', () => this._updateBlurGeometry()],
             [global.stage, 'after-update', () => this._blurRedrawGuard.end()]);
         const loginManager = LoginManager.getLoginManager();
         this._blurSleeping = loginManager.preparingForSleep ?? false;
@@ -429,6 +433,13 @@ export class ThemeManager {
                     this._queueBlurGeometry();
                 }
             }]);
+        if (Main.screenShield) {
+            this._signalsHandler.addWithLabel(Labels.BLUR_SESSION,
+                Main.screenShield, 'active-changed', () => {
+                    if (this._blurRecoveryPending)
+                        this._queueBlurRecovery();
+                });
+        }
         this._blurWindows = new Map();
         const added = GObject.signal_lookup('child-added', global.window_group)
             ? 'child-added' : 'actor-added';
@@ -487,11 +498,31 @@ export class ThemeManager {
     }
 
     _updateBlurGeometry() {
-        if (!this._blurActor)
+        if (!this._blurActor || !this._dash._background.mapped)
             return;
         const background = this._dash._background;
-        this._blurActor.set_position(this._dash.x + background.x, this._dash.y + background.y);
-        this._blurActor.set_size(background.width, background.height);
+        const [stageX, stageY] = background.get_transformed_position();
+        const [stageWidth, stageHeight] = background.get_transformed_size();
+        // The group deliberately has zero size to stay out of the box layout;
+        // inverse stage transforms require the allocated, nonempty parent.
+        const parent = this._blurGroup.get_parent();
+        const [validStart, parentX, parentY] = parent.transform_stage_point(stageX, stageY);
+        const [validEnd, right, bottom] = parent.transform_stage_point(
+            stageX + stageWidth, stageY + stageHeight);
+        if (!validStart || !validEnd)
+            return;
+        const x = parentX - this._blurGroup.x;
+        const y = parentY - this._blurGroup.y;
+        const width = right - parentX;
+        const height = bottom - parentY;
+        if (![x, y, width, height].every(Number.isFinite) || width <= 0 || height <= 0)
+            return;
+        const actor = this._blurActor;
+        if (Math.abs(actor.x - x) < 0.01 && Math.abs(actor.y - y) < 0.01 &&
+            Math.abs(actor.width - width) < 0.01 && Math.abs(actor.height - height) < 0.01)
+            return;
+        actor.set_position(x, y);
+        actor.set_size(width, height);
         this._queueBlurRepaint();
     }
 
@@ -552,6 +583,7 @@ export class ThemeManager {
             this._blurEffect.corner_radius = settings.dockBlurCornerRadius * scale;
         this._updateBlurGeometry();
         this._queueBlurGeometry();
+        this._queueBlurRepaint();
     }
 
     _disableIconShadow() {

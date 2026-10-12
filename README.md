@@ -87,7 +87,7 @@ O remoto `upstream` aponta para o projeto original.
 Na pasta que contém o ZIP:
 
 ```bash
-gnome-extensions install dash-to-dock-soft@local_v13.zip
+gnome-extensions install dash-to-dock-soft@local_v14.zip
 ```
 
 Encerre a sessão e entre novamente para que o GNOME Shell reconheça a nova extensão.
@@ -113,7 +113,7 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=13
+make zip-file VERSION=14
 ```
 
 Para instalar a partir da árvore de código:
@@ -124,6 +124,24 @@ make install
 
 Também são suportados Dart Sass (`make SASS=dart`) e Ruby Sass
 (`make SASS=ruby`), conforme o Makefile original.
+
+## Correção da versão 14
+
+O blur acompanha a posição e o tamanho renderizados do fundo, incluindo
+translação e escala. A versão anterior somava coordenadas de layout e só
+sincronizava alterações de alocação, deixando as duas camadas desalinhadas
+quando o dash se movia sem mudar sua alocação. A sincronização ocorre antes
+da pintura, nos frames existentes; geometria igual não agenda repinturas.
+A recriação do efeito após suspensão também aguarda o fim da tela de bloqueio.
+
+Testes de regressão e `make check` passaram. No GNOME Shell 50.5 headless,
+com blur, sombra e contorno ativos, uma translação de 24 px deixou o blur
+desalinhado na versão 13. A versão 14 manteve as camadas alinhadas durante
+translação, escala e recuperação simulada, inclusive com ocultação automática,
+sem frames em 1,5 s de repouso. Evidências em
+`validation/gnome50-blur-alignment-results.json` e
+`validation/gnome50-blur-alignment-after.png`. Esse teste não reproduz
+a suspensão física do computador nem confirma a eliminação do artefato relatado.
 
 ## Correção da versão 13
 

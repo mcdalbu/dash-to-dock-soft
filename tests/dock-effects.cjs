@@ -31,6 +31,8 @@ class MockBlurEffect {
 
 class MockActor {
     constructor(params) {
+        Object.assign(this, {x: 0, y: 0, width: 0, height: 0,
+            translation_x: 0, translation_y: 0, scale_x: 1, scale_y: 1});
         Object.assign(this, params);
         this.mapped = true;
         this.redraws = 0;
@@ -39,6 +41,7 @@ class MockActor {
     }
     add_child(child) { this.children.push(child); child.parent = this; }
     get_children() { return this.children; }
+    get_parent() { return this.parent; }
     get_theme_node() { return {get_transition_duration: () => this.transitionDuration || 0}; }
     insert_child_below(child, sibling) {
         assert.equal(sibling.parent, this);
@@ -52,8 +55,24 @@ class MockActor {
         this.effects.delete(entry[0]);
     }
     queue_redraw() { this.redraws++; }
-    get_transformed_position() { return [this.x, this.y]; }
-    get_transformed_size() { return [this.width, this.height]; }
+    get_transformed_position() {
+        const [px, py] = this.parent?.get_transformed_position() || [0, 0];
+        const [sx, sy] = this.parent?.stageScale() || [1, 1];
+        return [px + (this.x + this.translation_x) * sx, py + (this.y + this.translation_y) * sy];
+    }
+    stageScale() {
+        const [sx, sy] = this.parent?.stageScale() || [1, 1];
+        return [sx * this.scale_x, sy * this.scale_y];
+    }
+    get_transformed_size() {
+        const [sx, sy] = this.stageScale();
+        return [this.width * sx, this.height * sy];
+    }
+    transform_stage_point(x, y) {
+        const [px, py] = this.get_transformed_position();
+        const [sx, sy] = this.stageScale();
+        return [sx !== 0 && sy !== 0, (x - px) / sx, (y - py) / sy];
+    }
     get_paint_opacity() { return this.opacity ?? 255; }
     set_position(x, y) { this.x = x; this.y = y; }
     set_size(width, height) { this.width = width; this.height = height; }
@@ -78,7 +97,7 @@ const clutter = {DrawDebugFlag: {DISABLE_CLIPPED_REDRAWS: clippedFlag},
     remove_debug_flags: (_debug, draw) => {drawFlags &= ~draw; flagRemoves++;}};
 
 const sandbox = {imports: {signals: {addSignalMethods() {}}}, global: {stage: {}, window_group: {}, display: {}, get_window_actors: () => []},
-    Main: {sessionMode: {isLocked: false}},
+    Main: {sessionMode: {isLocked: false}, screenShield: {active: false}},
     LoginManager: {getLoginManager: () => loginManager},
     Clutter: clutter,
     GObject: {signal_lookup: () => 1},
@@ -162,7 +181,7 @@ function createDock() {
     let color = {red: 25, green: 25, blue: 25, alpha: 255};
     const effects = new Map();
     const classes = new Set(['bottom', 'existing-theme']);
-    const background = {x: 4, y: 6, width: 400, height: 64,
+    const background = new MockActor({x: 4, y: 6, width: 400, height: 64,
         get_style: () => style,
         set_style: value => {
             style = value;
@@ -184,11 +203,12 @@ function createDock() {
             assert(entry, 'Remove only an attached effect');
             effects.delete(entry[0]);
         },
-    };
+    });
     const parent = new MockActor({});
-    const dash = {_background: background, x: 12, y: 18, parent,
+    const dash = new MockActor({_background: background, x: 12, y: 18, parent,
         get_children: () => [], get_theme_node: () => ({get_transition_duration: () => 250}),
-        get_parent: () => parent};
+        get_parent: () => parent});
+    background.parent = dash;
     parent.children.push(dash);
     const dock = {mapped: true, dash,
         add_style_class_name: name => classes.add(name),
@@ -196,7 +216,10 @@ function createDock() {
     const manager = Object.create(sandbox.ThemeManager.prototype);
     const signalBindings = new Map();
     const signalHandler = {
-        addWithLabel: (label, ...signals) => signalBindings.set(label, [...signalBindings.get(label) || [], ...signals]),
+        addWithLabel: (label, ...signals) => {
+            if (!Array.isArray(signals[0])) signals = [signals];
+            signalBindings.set(label, [...signalBindings.get(label) || [], ...signals]);
+        },
         removeWithLabel: label => signalBindings.delete(label),
     };
     Object.assign(manager, {_signalsHandler: signalHandler, _actor: dock, _dash: dock.dash, _blurEffect: null,
@@ -469,6 +492,39 @@ function handler(dock, object, signal) {
         .find(binding => binding[0] === object && binding[1] === signal)[2];
 }
 context.scale_factor = 2;
+// A sibling blur must follow rendered translations/scales, including ancestors,
+// without requiring an allocation signal or scheduling idle frames.
+const transformed = createDock();
+transformed.manager._updateBlur();
+flushLaters();
+const paint = handler(transformed, sandbox.global.stage, 'before-paint');
+const assertAligned = () => {
+    assert.deepEqual(transformed.manager._blurActor.get_transformed_position(),
+        transformed.background.get_transformed_position());
+    const blurSize = transformed.manager._blurActor.get_transformed_size();
+    const backgroundSize = transformed.background.get_transformed_size();
+    for (let i = 0; i < 2; i++) assert(Math.abs(blurSize[i] - backgroundSize[i]) < 0.01);
+};
+transformed.dock.dash.translation_y = -24;
+paint();
+assertAligned();
+transformed.parent.translation_x = 70;
+transformed.parent.translation_y = 150;
+transformed.parent.scale_x = 1.5;
+transformed.parent.scale_y = 1.5;
+transformed.dock.dash.scale_y = 0.8;
+paint();
+assertAligned();
+flushLaters();
+const settledRepaints = transformed.manager._blurEffect.repaints;
+for (let i = 0; i < 60; i++) paint();
+assert.equal(laters.size, 0, 'Unchanged paint geometry schedules no future frames');
+assert.equal(transformed.manager._blurEffect.repaints, settledRepaints);
+transformed.parent.scale_x = 0;
+paint();
+assert.equal(laters.size, 0, 'Ignore noninvertible transforms until allocation settles');
+transformed.manager.destroy();
+
 const resumed = createDock();
 resumed.manager._updateBlur();
 flushLaters();
@@ -476,10 +532,12 @@ const staleEffect = resumed.manager._blurEffect;
 const backdrop = resumed.manager._blurActor;
 const sleepChanged = handler(resumed, loginManager, 'prepare-for-sleep');
 const sessionChanged = handler(resumed, sandbox.Main.sessionMode, 'updated');
+const shieldChanged = handler(resumed, sandbox.Main.screenShield, 'active-changed');
 const mappedChanged = handler(resumed, backdrop, 'notify::mapped');
 sleepChanged(loginManager, true);
 assert.equal(resumed.manager._blurRecoveryLater || 0, 0, 'No recovery frame while sleeping');
 sandbox.Main.sessionMode.isLocked = true;
+sandbox.Main.screenShield.active = true;
 sessionChanged();
 backdrop.mapped = false;
 mappedChanged();
@@ -492,6 +550,9 @@ resumed.background.y = 42;
 resumed.background.width = 480;
 backdrop.mapped = true;
 mappedChanged();
+assert.equal(resumed.manager._blurRecoveryLater || 0, 0, 'Wait for the unlock animation to finish');
+sandbox.Main.screenShield.active = false;
+shieldChanged();
 const recovery = resumed.manager._blurRecoveryLater;
 sessionChanged();
 sleepChanged(loginManager, false);
