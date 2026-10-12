@@ -73,7 +73,7 @@ efeitos sobrepostos.
 - UUID: `dash-to-dock-soft@local`
 - Schema: `org.gnome.shell.extensions.dash-to-dock-soft`
 - Configurações: `/org/gnome/shell/extensions/dash-to-dock-soft/`
-- Versão do fork: **12**
+- Versão do fork: **13**
 - Versões declaradas do GNOME Shell: **45–51**, herdadas do upstream.
 
 O UUID e o schema próprios preservam a instalação e as configurações originais.
@@ -87,7 +87,7 @@ O remoto `upstream` aponta para o projeto original.
 Na pasta que contém o ZIP:
 
 ```bash
-gnome-extensions install dash-to-dock-soft@local_v12.zip
+gnome-extensions install dash-to-dock-soft@local_v13.zip
 ```
 
 Encerre a sessão e entre novamente para que o GNOME Shell reconheça a nova extensão.
@@ -112,7 +112,8 @@ legada do upstream (por exemplo, ESLint 8).
 make
 make check
 node tests/dock-effects.cjs
-make zip-file VERSION=12
+node tests/dock-redraw-recovery.cjs
+make zip-file VERSION=13
 ```
 
 Para instalar a partir da árvore de código:
@@ -123,6 +124,36 @@ make install
 
 Também são suportados Dart Sass (`make SASS=dart`) e Ruby Sass
 (`make SASS=ruby`), conforme o Makefile original.
+
+## Correção da versão 13
+
+A recuperação após suspensão agora também atualiza o dock inteiro, mesmo com
+blur, sombra e contorno desligados. Aguarda o desaparecimento da tela de
+bloqueio, solicita a atualização do layout e do recorte usado pela ocultação
+automática e invalida a textura offscreen do dash depois do layout. Docks
+recriados durante o desbloqueio recebem a mesma atualização ao inicializar.
+O estado da ocultação automática é preservado, sem timer periódico.
+
+Também foi corrigida a remoção da folha temporária das sombras durante trocas
+de tema: o GNOME copia essa folha para o tema novo, mas o fork removia apenas
+a referência no tema antigo. Ao destruir o dock, o arquivo apagado ainda podia
+ser referenciado pelo tema atual, impedindo recargas posteriores. As duas
+referências agora são removidas antes de apagar ou atualizar o arquivo.
+
+Os testes de regressão cobrem ordem entre suspensão, desbloqueio e fim da tela
+de bloqueio, recorte desatualizado, ocultação automática parcial, cancelamento
+dos callbacks e remoção das folhas copiadas para um tema novo. A recuperação
+anterior do blur continua ativa. A confirmação do corte após suspensão física
+depende de um novo teste no computador do usuário.
+
+Validado no GNOME Shell 50.5 em sessão Wayland headless isolada: um recorte
+inferior artificial de 24 px foi restaurado após retorno simulado, com os
+três efeitos opcionais desligados. A recarga do tema depois de remover a
+sombra também passou. Após as notificações iniciais da sessão terminarem, não
+houve frames durante 1,5 s de repouso. Resultados e capturas antes/depois em
+`validation/gnome50-dock-recovery-results.json` e
+`validation/gnome50-dock-recovery-{before,after}.png`. Esse teste não reproduz
+a suspensão física nem comprova a resolução do artefato específico relatado.
 
 ## Correção da versão 12
 

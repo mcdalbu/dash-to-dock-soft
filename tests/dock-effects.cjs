@@ -258,6 +258,9 @@ assert.notEqual(otherFile, shadowFile);
 assert.notEqual(otherShadow.manager._shadowClass, a.manager._shadowClass);
 const oldTheme = context.theme;
 context.theme = createTheme();
+// Main.loadTheme() copies every custom stylesheet before replacing the theme.
+for (const [file, css] of oldTheme.styles)
+    context.theme.styles.set(file, css);
 a.manager._updateCustomStyleClasses();
 assert(!oldTheme.styles.has(shadowFile));
 assert(context.theme.styles.has(shadowFile), 'Reload shadow after a theme replacement');
@@ -270,6 +273,23 @@ assert(oldTheme.styles.has(otherFile), 'Disabling one dock cannot remove another
 otherShadow.manager.destroy();
 assert(otherFile.deleted);
 assert(!oldTheme.styles.has(otherFile));
+assert(!context.theme.styles.has(otherFile), 'Teardown unloads the copied stylesheet from the current theme');
+
+// Replacing the theme and destroying a dock before its deferred theme update
+// must never leave a reference to a deleted file in the replacement theme.
+settings.iconShadow = true;
+const reloadedShadow = createDock();
+reloadedShadow.manager._updateIconShadow();
+const reloadFile = reloadedShadow.manager._shadowFile;
+const sourceTheme = context.theme;
+context.theme = createTheme();
+for (const [file, css] of sourceTheme.styles)
+    context.theme.styles.set(file, css);
+reloadedShadow.manager.destroy();
+assert(reloadFile.deleted);
+assert(!sourceTheme.styles.has(reloadFile));
+assert(!context.theme.styles.has(reloadFile), 'Reload cannot reference a deleted shadow stylesheet');
+settings.iconShadow = false;
 Object.assign(settings, {iconShadowOffsetX: 0, iconShadowOffsetY: 2, iconShadowBlur: 4});
 
 const effect = a.manager._blurEffect;

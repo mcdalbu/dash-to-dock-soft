@@ -43,6 +43,7 @@ import {
 import {Extension} from './dependencies/shell/extensions/extension.js';
 
 import {StrutsManager} from './dockStruts.js';
+import {DockRedrawRecovery} from './dockRedrawRecovery.js';
 
 // Use __ () and N__() for the extension gettext domain, and reuse
 // the shell domain with the default _() and N_()
@@ -508,6 +509,7 @@ const DockedDash = GObject.registerClass({
             this._onOverviewShowing();
 
         this._updateAutoHideBarriers();
+        this._redrawRecovery = new DockRedrawRecovery(this);
     }
 
     _onDestroy() {

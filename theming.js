@@ -556,7 +556,7 @@ export class ThemeManager {
 
     _disableIconShadow() {
         if (this._shadowFile) {
-            this._shadowTheme?.unload_stylesheet(this._shadowFile);
+            this._unloadShadowStylesheet();
             this._shadowFile.delete(null);
         }
         this._shadowFile = null;
@@ -564,6 +564,15 @@ export class ThemeManager {
         this._shadowCss = null;
         if (this._shadowClass)
             this._actor.remove_style_class_name(this._shadowClass);
+    }
+
+    _unloadShadowStylesheet() {
+        // Shell copies custom stylesheets to the replacement theme. The old
+        // theme stored here can differ from the current theme during teardown
+        // on unlock. Remove both references before deleting the temporary file.
+        const theme = St.ThemeContext.get_for_stage(global.stage).get_theme();
+        for (const owner of new Set([this._shadowTheme, theme]))
+            owner?.unload_stylesheet(this._shadowFile);
     }
 
     _updateIconShadow() {
@@ -589,7 +598,7 @@ export class ThemeManager {
             stream.close(null);
             this._shadowFile = file;
         } else {
-            this._shadowTheme?.unload_stylesheet(this._shadowFile);
+            this._unloadShadowStylesheet();
         }
         this._shadowFile.replace_contents(css, null, false,
             Gio.FileCreateFlags.REPLACE_DESTINATION, null);

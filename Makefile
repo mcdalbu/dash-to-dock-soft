@@ -28,6 +28,7 @@ EXTRA_MODULES = \
                 theming.js \
                 blurBackend.js \
                 blurRedrawGuard.js \
+                dockRedrawRecovery.js \
                 utils.js \
                 dbusmenuUtils.js \
                 desktopIconsIntegration.js \

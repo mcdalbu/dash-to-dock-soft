@@ -1,0 +1,30 @@
+{
+  "shell": "GNOME Shell 50.5",
+  "simulatedResume": true,
+  "physicalSuspendTested": false,
+  "forcedStaleClip": true,
+  "initialClip": [
+    0,
+    0,
+    537,
+    88
+  ],
+  "recoveredClip": [
+    0,
+    0,
+    537,
+    88
+  ],
+  "effectsDisabledRecovery": true,
+  "themeReloadAfterShadowTeardown": true,
+  "idleFrames": 0,
+  "cleanup": true,
+  "pass": true,
+  "originalScreenshotReproduced": false,
+  "shadowRegressionFailsOnV12": true,
+  "unitTests": [
+    "tests/dock-effects.cjs: PASS",
+    "tests/dock-redraw-recovery.cjs: PASS"
+  ],
+  "lint": "make check (ESLint 8.57.1): PASS"
+}
