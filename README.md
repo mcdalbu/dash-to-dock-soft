@@ -73,7 +73,7 @@ efeitos sobrepostos.
 - UUID: `dash-to-dock-soft@local`
 - Schema: `org.gnome.shell.extensions.dash-to-dock-soft`
 - Configurações: `/org/gnome/shell/extensions/dash-to-dock-soft/`
-- Versão do fork: **13**
+- Versão do fork: **15**
 - Versões declaradas do GNOME Shell: **45–51**, herdadas do upstream.
 
 O UUID e o schema próprios preservam a instalação e as configurações originais.
@@ -87,7 +87,7 @@ O remoto `upstream` aponta para o projeto original.
 Na pasta que contém o ZIP:
 
 ```bash
-gnome-extensions install dash-to-dock-soft@local_v14.zip
+gnome-extensions install dash-to-dock-soft@local_v15.zip
 ```
 
 Encerre a sessão e entre novamente para que o GNOME Shell reconheça a nova extensão.
@@ -113,7 +113,7 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=14
+make zip-file VERSION=15
 ```
 
 Para instalar a partir da árvore de código:
@@ -124,6 +124,14 @@ make install
 
 Também são suportados Dart Sass (`make SASS=dart`) e Ruby Sass
 (`make SASS=ruby`), conforme o Makefile original.
+
+## Atualização da versão 15
+
+Integra os 15 commits do upstream até a versão 110 (`2dfae34`), incluindo
+correções de visibilidade do dock com menus abertos e ocultação manual,
+atalhos no monitor sob o ponteiro, temporizadores da sobreposição numérica
+e extração de traduções no plural. Mantém as opções de aparência e as
+correções de recuperação após suspensão do fork.
 
 ## Correção da versão 14
 
