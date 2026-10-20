@@ -329,7 +329,7 @@ const DockedDash = GObject.registerClass({
             // Monitor windows overlapping
             this._intellihide,
             'status-changed',
-            this._updateDashVisibility.bind(this),
+            () => this.updateDashVisibility(),
         ], [
             this.dash,
             'menu-opened',
@@ -346,7 +346,7 @@ const DockedDash = GObject.registerClass({
         ], [
             this.dash,
             'notify::requires-visibility',
-            () => this._updateDashVisibility(),
+            () => this.updateDashVisibility(),
         ]);
 
         if (!Main.overview.isDummy) {
@@ -775,7 +775,7 @@ const DockedDash = GObject.registerClass({
             this.intellihideEnabled = settings.intellihide;
         }
 
-        this._updateDashVisibility();
+        this.updateDashVisibility();
     }
 
     /**
@@ -786,7 +786,7 @@ const DockedDash = GObject.registerClass({
      * autohide
      * overview visibility
      */
-    _updateDashVisibility() {
+    updateDashVisibility() {
         if (DockManager.settings.manualhide) {
             this._ignoreHover = true;
             this._removeAnimations();
@@ -795,6 +795,9 @@ const DockedDash = GObject.registerClass({
         }
 
         if (Main.overview.visibleTarget)
+            return;
+
+        if (this._menuOpened)
             return;
 
         const {settings} = DockManager;
@@ -836,22 +839,24 @@ const DockedDash = GObject.registerClass({
 
     _onOverviewHiding() {
         this._intellihide.enable();
-        this._updateDashVisibility();
+        this.updateDashVisibility();
     }
 
     _onOverviewHidden() {
         this.remove_style_class_name('overview');
-        this._updateDashVisibility();
+        this.updateDashVisibility();
     }
 
     _onMenuOpened() {
         this._ignoreHover = true;
+        this._menuOpened = true;
+        this.updateDashVisibility();
     }
 
     _onMenuClosed() {
-        this._ignoreHover = false;
+        delete this._menuOpened;
         this._box.sync_hover();
-        this._updateDashVisibility();
+        this.updateDashVisibility();
     }
 
     _hoverChanged() {
@@ -860,14 +865,17 @@ const DockedDash = GObject.registerClass({
             // by intellihide.
             if (this.autohideEnabled) {
                 if (this._box.hover || Main.overview.visible)
-                    this._show();
+                    this.showDock();
                 else
-                    this._hide();
+                    this.hideDock();
             }
         }
     }
 
-    _show() {
+    showDock() {
+        if (DockManager.settings.manualhide)
+            return;
+
         this._delayedHide = false;
         if ((this.dockState === State.HIDDEN) || (this.dockState === State.HIDING)) {
             if (this.dockState === State.HIDING)
@@ -880,7 +888,7 @@ const DockedDash = GObject.registerClass({
         }
     }
 
-    _hide() {
+    hideDock() {
         // If no hiding animation is running or queued
         if ((this.dockState === State.SHOWN) || (this.dockState === State.SHOWING)) {
             const {settings} = DockManager;
@@ -926,7 +934,7 @@ const DockedDash = GObject.registerClass({
                     this._removeBarrierTimeoutId = GLib.timeout_add(
                         GLib.PRIORITY_DEFAULT, 100, this._removeBarrier.bind(this));
                 } else {
-                    this._hide();
+                    this.hideDock();
                 }
             },
         });
@@ -1162,7 +1170,7 @@ const DockedDash = GObject.registerClass({
             }
         });
 
-        this._show();
+        this.showDock();
     }
 
     /**
@@ -1407,7 +1415,7 @@ const DockedDash = GObject.registerClass({
         }
 
         this._box.sync_hover();
-        this._updateDashVisibility();
+        this.updateDashVisibility();
     }
 
     /**
@@ -1549,16 +1557,12 @@ const DockedDash = GObject.registerClass({
         };
     }
 
-    _activateApp(appIndex) {
-        const children = this.dash._box.get_children().filter(actor => {
-            return actor.child &&
-                       actor.child.app;
-        });
+    activateApp(appIndex) {
+        const children = this.dash._box.get_children().filter(
+            actor => !!actor.child?.app);
 
         // Apps currently in the dash
-        const apps = children.map(actor => {
-            return actor.child;
-        });
+        const apps = children.map(actor => actor.child);
 
         // Activate with button = 1, i.e. same as left click
         const button = 1;
@@ -1570,9 +1574,10 @@ const DockedDash = GObject.registerClass({
 /*
  * Handle keyboard shortcuts
  */
-const NUM_HOTKEYS = 10;
-
 const KeyboardShortcuts = class DashToDockKeyboardShortcuts {
+    static NUM_HOTKEYS = 10;
+    static KEYS = ['app-hotkey', 'app-shift-hotkey', 'app-ctrl-hotkey'];
+
     constructor() {
         this._signalsHandler = new Utils.GlobalSignalsHandler();
 
@@ -1585,9 +1590,9 @@ const KeyboardShortcuts = class DashToDockKeyboardShortcuts {
             'changed::hot-keys',
             () => {
                 if (DockManager.settings.hotKeys)
-                    this._enableHotKeys.bind(this)();
+                    this._enableHotKeys();
                 else
-                    this._disableHotKeys.bind(this)();
+                    this._disableHotKeys();
             },
         ]);
 
@@ -1595,12 +1600,7 @@ const KeyboardShortcuts = class DashToDockKeyboardShortcuts {
     }
 
     destroy() {
-        DockManager.allDocks.forEach(dock => {
-            if (dock._numberOverlayTimeoutId) {
-                GLib.source_remove(dock._numberOverlayTimeoutId);
-                delete dock._numberOverlayTimeoutId;
-            }
-        });
+        this._hideOverlay();
 
         // Remove keybindings
         this._disableHotKeys();
@@ -1613,17 +1613,25 @@ const KeyboardShortcuts = class DashToDockKeyboardShortcuts {
             return;
 
         // Setup keyboard bindings for dash elements
-        const keys = ['app-hotkey-', 'app-shift-hotkey-', 'app-ctrl-hotkey-'];
-        const {mainDock} = DockManager.getDefault();
-        keys.forEach(function (key) {
-            for (let i = 0; i < NUM_HOTKEYS; i++) {
+        KeyboardShortcuts.KEYS.forEach(key => {
+            for (let i = 0; i < KeyboardShortcuts.NUM_HOTKEYS; i++) {
                 const appNum = i;
-                Main.wm.addKeybinding(key + (i + 1), DockManager.settings,
+                Main.wm.addKeybinding(`${key}-${i + 1}`, DockManager.settings,
                     Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                     Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
                     () => {
-                        mainDock._activateApp(appNum);
-                        this._showOverlay();
+                        const dockManager = DockManager.getDefault();
+                        let dock = dockManager.mainDock;
+
+                        if (Main.layoutManager.monitors.length > 1) {
+                            const monitorIndex =
+                                Main.layoutManager.findMonitorForPoint(...global.get_pointer());
+                            dock = dockManager.getDockByMonitor(monitorIndex) ??
+                                dockManager.mainDock;
+                        }
+
+                        dock.activateApp(appNum);
+                        this._showOverlay({docks: [dock]});
                     });
             }
         }, this);
@@ -1635,10 +1643,9 @@ const KeyboardShortcuts = class DashToDockKeyboardShortcuts {
         if (!this._hotKeysEnabled)
             return;
 
-        const keys = ['app-hotkey-', 'app-shift-hotkey-', 'app-ctrl-hotkey-'];
-        keys.forEach(key => {
-            for (let i = 0; i < NUM_HOTKEYS; i++)
-                Main.wm.removeKeybinding(key + (i + 1));
+        KeyboardShortcuts.KEYS.forEach(key => {
+            for (let i = 0; i < KeyboardShortcuts.NUM_HOTKEYS; i++)
+                Main.wm.removeKeybinding(`${key}-${i + 1}`);
         }, this);
 
         this._hotKeysEnabled = false;
@@ -1682,7 +1689,7 @@ const KeyboardShortcuts = class DashToDockKeyboardShortcuts {
             Main.wm.addKeybinding('shortcut', DockManager.settings,
                 Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
                 Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
-                this._showOverlay.bind(this));
+                () => this._showOverlay());
             this._shortcutIsSet = true;
         }
     }
@@ -1694,34 +1701,43 @@ const KeyboardShortcuts = class DashToDockKeyboardShortcuts {
         }
     }
 
-    _showOverlay() {
-        for (const dock of DockManager.allDocks) {
+    _showOverlay({docks} = {docks: DockManager.allDocks}) {
+        // Restart the counting if the shortcut is pressed again
+        if (this._numberOverlayTimeoutId)
+            this._hideOverlay();
+
+        docks.forEach(dock => {
+            const {dash} = dock;
+
             if (DockManager.settings.hotkeysOverlay)
-                dock.dash.toggleNumberOverlay(true);
-
-            // Restart the counting if the shortcut is pressed again
-            if (dock._numberOverlayTimeoutId) {
-                GLib.source_remove(dock._numberOverlayTimeoutId);
-                dock._numberOverlayTimeoutId = 0;
-            }
-
-            // Hide the overlay/dock after the timeout
-            const timeout = DockManager.settings.shortcutTimeout * 1000;
-            dock._numberOverlayTimeoutId = GLib.timeout_add(
-                GLib.PRIORITY_DEFAULT, timeout, () => {
-                    dock._numberOverlayTimeoutId = 0;
-                    dock.dash.toggleNumberOverlay(false);
-                    // Hide the dock again if necessary
-                    dock._updateDashVisibility();
-                });
+                dash.toggleNumberOverlay(true);
 
             // Show the dock if it is hidden
-            if (DockManager.settings.hotkeysShowDock) {
-                const showDock = dock.intellihideEnabled || dock.autohideEnabled;
-                if (showDock)
-                    dock._show();
-            }
-        }
+            if (DockManager.settings.hotkeysShowDock)
+                dock.showDock();
+        });
+
+        const {shortcutTimeout} = DockManager.settings;
+        this._numberOverlayTimeoutId = GLib.timeout_add(
+            GLib.PRIORITY_DEFAULT, shortcutTimeout * 1000, () => {
+                this._hideOverlay({docks});
+                return GLib.SOURCE_REMOVE;
+            });
+    }
+
+    _hideOverlay({docks} = {docks: DockManager.allDocks}) {
+        if (!this._numberOverlayTimeoutId)
+            return;
+
+        GLib.source_remove(this._numberOverlayTimeoutId);
+        delete this._numberOverlayTimeoutId;
+
+        docks.forEach(dock => {
+            dock.dash.toggleNumberOverlay(false);
+
+            // Hide the dock again if necessary
+            dock.updateDashVisibility();
+        });
     }
 };
 

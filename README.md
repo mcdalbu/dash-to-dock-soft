@@ -3,7 +3,7 @@
 Fork independente do [Dash to Dock](https://github.com/micheleg/dash-to-dock),
 de Michele G. e colaboradores, mantido por [mcdalbu](https://github.com/mcdalbu).
 Não é uma versão oficial do projeto original.
-Base: commit `8c2cb998972a72c5c459dc07a8c2067bf654779e` (versão upstream 109).
+Base: commit `2dfae34` (versão upstream 110).
 
 ## Novas opções
 
