@@ -124,6 +124,11 @@
   },
   "dark-border-shadow-corners-match": true,
   "dark-actual-opacity": true,
+  "dark-shadow-0": true,
+  "dark-shadow-50": true,
+  "dark-shadow-100": true,
+  "dark-shadow-150": true,
+  "dark-shadow-200": true,
   "dark-position-0": true,
   "dark-position-1": true,
   "dark-position-2": true,
@@ -251,6 +256,11 @@
   },
   "light-border-shadow-corners-match": true,
   "light-actual-opacity": true,
+  "light-shadow-0": true,
+  "light-shadow-50": true,
+  "light-shadow-100": true,
+  "light-shadow-150": true,
+  "light-shadow-200": true,
   "light-position-0": true,
   "light-position-1": true,
   "light-position-2": true,
@@ -260,6 +270,58 @@
   "dynamic-transparency-keeps-surface": true,
   "profile-off": true,
   "profile-on": true,
+  "keep-native-corners": true,
+  "native-corners-keep-shadow": true,
+  "blur-native-corners": true,
+  "compact-native-corners": true,
+  "panel-native-corners": true,
+  "height-measurements": [
+    {
+      "requested": 120,
+      "height": 120,
+      "iconSize": 48,
+      "iconHeight": 60,
+      "iconCenter": 928,
+      "backgroundCenter": 928
+    },
+    {
+      "requested": 160,
+      "height": 160,
+      "iconSize": 48,
+      "iconHeight": 60,
+      "iconCenter": 908,
+      "backgroundCenter": 908
+    },
+    {
+      "requested": 80,
+      "height": 80,
+      "iconSize": 48,
+      "iconHeight": 60,
+      "iconCenter": 948,
+      "backgroundCenter": 948
+    },
+    {
+      "requested": 32,
+      "height": 80,
+      "iconSize": 48,
+      "iconHeight": 60,
+      "iconCenter": 948,
+      "backgroundCenter": 948
+    },
+    {
+      "requested": 0,
+      "height": 80,
+      "iconSize": 48,
+      "iconHeight": 60,
+      "iconCenter": 948,
+      "backgroundCenter": 948
+    }
+  ],
+  "height-adjusts": true,
+  "side-width": {
+    "width": 120,
+    "height": 539
+  },
   "full-shadow-unclipped": true,
   "autohide-viewport": true,
   "shadow-after-show": true,
@@ -268,7 +330,7 @@
   "reenable": true,
   "preferences": {
     "passed": true,
-    "output": "Preferences: profile binding, defaults and dependent controls passed"
+    "output": "Preferences: height, native radius, shadow intensity, defaults and dependent controls passed"
   },
   "passed": true
 }

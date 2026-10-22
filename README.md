@@ -8,7 +8,7 @@ menus de notificações/calendário e Quick Settings do GNOME Shell.
 - **Nome:** Dash to Dock Shell Soft
 - **UUID:** `dash-to-dock-shell-soft@local`
 - **Schema:** `org.gnome.shell.extensions.dash-to-dock-shell-soft`
-- **Versão deste fork:** 1
+- **Versão deste fork:** 2
 - **Repositório:** [mcdalbu/dash-to-dock-shell-soft](https://github.com/mcdalbu/dash-to-dock-shell-soft)
 
 O código, UUID e configurações são próprios. Não substitui a instalação do
@@ -38,6 +38,28 @@ Os controles manuais de contorno e raio ficam desabilitados enquanto o estilo
 dos menus é seguido. Desligue essa opção para voltar a ajustá-los separadamente.
 Os valores manuais permanecem salvos.
 
+A opção **Manter o raio padrão dos cantos do Dash to Dock** permite conservar
+os cantos do dock e usar somente o contorno e a sombra dos menus. O raio continua
+acompanhando os modos compacto e estendido, e o recorte do blur usa o mesmo raio
+do fundo. Essa opção vem desativada, preservando o visual dos menus por padrão.
+
+O controle **Intensidade da sombra externa (%)** vai de **0% a 200%** e afeta
+apenas a opacidade da sombra externa. O padrão **100%** usa exatamente a sombra
+do Quick Settings, incluindo a diferença entre os temas claro e escuro. **0%**
+remove a sombra; **200%** duplica sua opacidade, limitada a 100% de opacidade
+real. A cor, os deslocamentos e o desfoque permanecem os do tema. Esse controle
+fica disponível com o estilo dos menus ativado.
+
+## Altura do dock
+
+Em **Preferências → Posição e tamanho**, o controle **Altura do dock (px)**
+permite ajustar o fundo em **pixels lógicos**, de **0 a 256**, sem alterar o
+tamanho dos ícones. O padrão **0 (Automático)** mantém o dimensionamento habitual.
+O valor inclui o contorno e preserva a altura mínima necessária para os ícones,
+evitando cortá-los. Os ícones ficam centralizados quando o fundo aumenta.
+Nos docks laterais, o controle ajusta a largura, mantendo o comprimento nas
+opções existentes. Todas as alterações são aplicadas ao vivo.
+
 ## Blur e transparência
 
 O blur dinâmico herdado do Dash to Dock Soft vem **ativado**, com intensidade
@@ -55,7 +77,7 @@ retos, enquanto a superfície continua arredondada. A biblioteca é opcional e n
 ## Instalar
 
 ```bash
-gnome-extensions install dash-to-dock-shell-soft@local_v1.zip
+gnome-extensions install dash-to-dock-shell-soft@local_v2.zip
 ```
 
 Encerre a sessão e entre novamente para reconhecer uma extensão nova. Depois:
@@ -80,7 +102,7 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=1
+make zip-file VERSION=2
 ```
 
 O teste de integração inicia um GNOME Shell 50 headless em D-Bus e diretórios de
@@ -95,6 +117,9 @@ e os cantos realmente renderizados nos temas claro/escuro, quatro posições,
 escala 2×, alteração de estilos com o menu fechado, transparência dinâmica,
 ocultação, ativação/desativação e repouso. Também testa os controles GTK novos.
 Resultados e capturas em `validation/shell-menu-*`.
+Os testes da versão 2 incluem raio nativo nos modos normal, compacto e estendido,
+altura real e largura lateral sem redimensionar os ícones, e intensidade da sombra
+em 0%, 50%, 100%, 150% e 200% nos dois temas, além dos vínculos dos controles GTK.
 
 Compatibilidade declarada **45–51**, herdada da base. A validação de integração
 usa **GNOME Shell 50.6**; as outras versões e a suspensão física precisam de

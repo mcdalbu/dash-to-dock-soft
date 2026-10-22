@@ -65,7 +65,7 @@ function getShellMenuBox() {
  */
 function applyDockSurfaceStyle(dock) {
     const {settings} = Docking.DockManager;
-    if (!settings.shellMenuStyle && !settings.dockOutline && !settings.dockBlur)
+    if (!settings.shellMenuStyle && !settings.dockOutline && !settings.dockBlur && !settings.dockHeight)
         return;
 
     const background = dock.dash._background;
@@ -75,7 +75,8 @@ function applyDockSurfaceStyle(dock) {
     const menu = settings.shellMenuStyle ? getShellMenuBox() : null;
     if (menu) {
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        style += shellMenuSurfaceStyle(menu.get_theme_node(), scale);
+        style += shellMenuSurfaceStyle(menu.get_theme_node(), scale,
+            settings.shellMenuKeepDockRadius, settings.dockShadowIntensity);
     } else if (settings.dockOutline) {
         const color = background.get_theme_node().get_background_color();
         const luminance = (0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue) / 255;
@@ -85,6 +86,20 @@ function applyDockSurfaceStyle(dock) {
     }
     if (settings.dockBlur)
         style += 'background-image: none;';
+    if (settings.dockHeight > 0) {
+        const position = Utils.getPosition(settings);
+        const horizontal = position === St.Side.TOP || position === St.Side.BOTTOM;
+        const sides = horizontal ? [St.Side.TOP, St.Side.BOTTOM] : [St.Side.LEFT, St.Side.RIGHT];
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        const node = background.get_theme_node();
+        const borderNode = menu ? menu.get_theme_node() : node;
+        // St's min-size applies to the content box. Include the border and
+        // padding in the user-facing size, while retaining the icon minimum.
+        const insets = sides.reduce((sum, side) => sum + node.get_padding(side) +
+            (!menu && settings.dockOutline ? scale : borderNode.get_border_width(side)), 0) / scale;
+        const size = Math.max(0, settings.dockHeight - insets);
+        style += `min-${horizontal ? 'height' : 'width'}: ${size}px;`;
+    }
     background.set_style(style);
 }
 
@@ -779,6 +794,9 @@ export class ThemeManager {
     _bindSettingsChanges() {
         const keys = ['transparency-mode',
             'shell-menu-style',
+            'shell-menu-keep-dock-radius',
+            'dock-shadow-intensity',
+            'dock-height',
             'customize-alphas',
             'min-alpha',
             'max-alpha',

@@ -583,6 +583,12 @@ const DockSettings = GObject.registerClass({
         });
 
         // size options
+        this._settings.bind('dock-height',
+            this._builder.get_object('dock_height_adjustment'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._builder.get_object('dock_height_scale').set_format_value_func((_, value) =>
+            value === 0 ? __('Automatic') : `${Math.round(value)} px`);
         const dockSizeScale = this._builder.get_object('dock_size_scale');
         dockSizeScale.set_value(this._settings.get_double('height-fraction'));
         dockSizeScale.add_mark(0.9, Gtk.PositionType.TOP, null);
@@ -1004,6 +1010,22 @@ const DockSettings = GObject.registerClass({
             this._builder.get_object('shell_menu_style_switch'),
             'active',
             Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('shell-menu-keep-dock-radius',
+            this._builder.get_object('shell_menu_keep_dock_radius_switch'),
+            'active',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('shell-menu-style',
+            this._builder.get_object('shell_menu_keep_dock_radius_switch'),
+            'sensitive',
+            Gio.SettingsBindFlags.GET);
+        this._settings.bind('dock-shadow-intensity',
+            this._builder.get_object('dock_shadow_intensity_adjustment'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('shell-menu-style',
+            this._builder.get_object('dock_shadow_intensity_scale'),
+            'sensitive',
+            Gio.SettingsBindFlags.GET);
         this._settings.bind('dock-outline-intensity',
             this._builder.get_object('dock_outline_intensity_adjustment'),
             'value',

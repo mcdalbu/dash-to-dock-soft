@@ -1,5 +1,6 @@
 ignorePatterns:
   - _build/**
+  - dash-to-dock-shell-soft@local_v*/**
 
 extends:
  - ./lint/eslintrc-gjs.yml

@@ -21,7 +21,8 @@ def stage():
     with tempfile.TemporaryDirectory(prefix='shell-soft-dock-test-', ignore_cleanup_errors=True) as temporary:
         base = Path(temporary)
         extension = base / 'data/gnome-shell/extensions' / UUID
-        shutil.copytree(ROOT, extension, ignore=shutil.ignore_patterns('*.zip', 'validation', 'tests', '.git', '_build'))
+        shutil.copytree(ROOT, extension, ignore=shutil.ignore_patterns(
+            '*.zip', 'validation', 'tests', '.git', '_build', 'dash-to-dock-shell-soft@local_v*'))
         if os.environ.get('SOFT_TEST_NATIVE'):
             backend = extension / 'blurBackend.js'
             backend.write_text(backend.read_text().replace('gi://Blur', 'gi://SoftTestMissingBlur'))
@@ -124,7 +125,7 @@ def test():
         check('own-identity', 'extension.uuid === "dash-to-dock-shell-soft@local" && '
               'manager.settings.settings_schema.get_id() === "org.gnome.shell.extensions.dash-to-dock-shell-soft"')
         check('profile-default', 'manager.settings.shellMenuStyle && manager.settings.dockBlur && '
-              'manager.settings.backgroundOpacity === 0.55')
+              'manager.settings.backgroundOpacity === 0.55 && manager.settings.dockShadowIntensity === 100')
         evaluate('manager.settings.set_boolean("dock-fixed", true); '
                  'manager.settings.set_boolean("autohide", false); '
                  'manager.settings.set_boolean("intellihide", false);')
@@ -147,6 +148,19 @@ def test():
                   'JSON.stringify(surfaceValues(background)) === JSON.stringify(surfaceValues(menu.box))')
             check(f'{theme}-actual-opacity',
                   'Math.abs(background.get_theme_node().get_background_color().alpha - 140) <= 1')
+            for intensity in [0, 50, 100, 150, 200]:
+                evaluate(f'manager.settings.set_int("dock-shadow-intensity",{intensity});')
+                time.sleep(0.2)
+                check(f'{theme}-shadow-{intensity}', '''(() => {
+                    const a=surfaceValues(background), b=surfaceValues(menu.box);
+                    const expected=Math.min(255,b.shadow.color[3]*manager.settings.dockShadowIntensity/100);
+                    const alpha=a.shadow?.color[3] ?? 0;
+                    if (a.shadow) a.shadow.color[3]=b.shadow.color[3];
+                    return Math.abs(alpha-expected)<=1 && (expected===0 || JSON.stringify(a)===JSON.stringify(b)) &&
+                        JSON.stringify(a.borders)===JSON.stringify(b.borders) &&
+                        JSON.stringify(a.corners)===JSON.stringify(b.corners);
+                })()''')
+            evaluate('manager.settings.set_int("dock-shadow-intensity",100);')
             for position in [0,1,2,3]:
                 evaluate(f'manager.settings.set_enum("dock-position",{position});')
                 time.sleep(0.4)
@@ -184,6 +198,51 @@ def test():
         evaluate('manager.settings.set_boolean("shell-menu-style",true);')
         time.sleep(0.5)
         check('profile-on', 'JSON.stringify(surfaceValues(background)) === JSON.stringify(surfaceValues(menu.box))')
+        evaluate('manager.settings.set_boolean("shell-menu-style",false);')
+        time.sleep(0.3)
+        evaluate('globalThis.nativeCorners=surfaceValues(background).corners; '
+                 'manager.settings.set_boolean("shell-menu-keep-dock-radius",true); '
+                 'manager.settings.set_boolean("shell-menu-style",true);')
+        time.sleep(0.3)
+        check('keep-native-corners', 'JSON.stringify(surfaceValues(background).corners) === JSON.stringify(nativeCorners)')
+        check('native-corners-keep-shadow', '(() => {const a=surfaceValues(background);const b=surfaceValues(menu.box); '
+              'a.corners=b.corners;return JSON.stringify(a)===JSON.stringify(b);})()')
+        check('blur-native-corners', '!dock._themeManager._blurHasCornerRadius || '
+              'dock._themeManager._blurEffect.corner_radius === nativeCorners[0]')
+        evaluate('manager.settings.set_boolean("custom-theme-shrink",true);')
+        time.sleep(0.3)
+        check('compact-native-corners', 'background.get_theme_node().get_border_radius(0) < nativeCorners[0]')
+        evaluate('manager.settings.set_boolean("custom-theme-shrink",false);')
+        time.sleep(0.3)
+        evaluate('manager.settings.set_boolean("extend-height",true);')
+        time.sleep(0.3)
+        check('panel-native-corners', 'surfaceValues(background).corners.every(v=>v===0)')
+        evaluate('manager.settings.set_boolean("extend-height",false);')
+        time.sleep(0.3)
+        results['height-measurements'] = []
+        for height in [120, 160, 80, 32, 0]:
+            evaluate(f'manager.settings.set_int("dock-height",{height});')
+            time.sleep(0.4)
+            results['height-measurements'].append(evaluate('({requested:manager.settings.dockHeight, '
+                'height:background.height, iconSize:dock.dash.iconSize, '
+                'iconHeight:dock.dash._showAppsIcon.icon.height, '
+                'iconCenter:dock.dash._showAppsIcon.icon.get_transformed_position()[1]+dock.dash._showAppsIcon.icon.height/2, '
+                'backgroundCenter:background.get_transformed_position()[1]+background.height/2})'))
+        measurements = results['height-measurements']
+        assert all(abs(m['height']-m['requested']) <= 1 for m in measurements if m['requested'] >= 80)
+        assert all(m['iconSize'] == measurements[0]['iconSize'] for m in measurements)
+        assert measurements[-2]['height'] == measurements[-1]['height']
+        assert all(abs(m['iconCenter']-m['backgroundCenter']) <= 2 for m in measurements)
+        results['height-adjusts'] = True
+        evaluate('manager.settings.set_int("dock-height",120); manager.settings.set_enum("dock-position",3);')
+        time.sleep(0.4)
+        evaluate('globalThis.dock=manager.allDocks[0];globalThis.background=dock.dash._background;')
+        results['side-width'] = evaluate('({width:background.width, height:background.height})')
+        assert abs(results['side-width']['width']-120) <= 1
+        evaluate('manager.settings.set_int("dock-height",0); manager.settings.set_enum("dock-position",2); '
+                 'manager.settings.set_boolean("shell-menu-keep-dock-radius",false);')
+        time.sleep(0.4)
+        evaluate('globalThis.dock=manager.allDocks[0];globalThis.background=dock.dash._background;')
         check('full-shadow-unclipped', 'dock._slider.slideX === 1 && !dock._box.has_clip')
         evaluate('dock._slider.slideX=0.4;')
         time.sleep(0.3)

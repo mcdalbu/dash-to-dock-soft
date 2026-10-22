@@ -9,6 +9,7 @@ Settings.ui.h
 _build
 
 dash-to-dock-shell-soft@local*.zip
+/dash-to-dock-shell-soft@local_v*/
 
 validation/*.log
 __pycache__/

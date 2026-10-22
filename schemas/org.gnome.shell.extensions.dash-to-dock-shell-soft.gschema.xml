@@ -56,6 +56,23 @@
       <summary>Shell menu outline and shadow</summary>
       <description>Match the background color, border, corners and outer shadow of the active Shell menu theme. Background opacity remains adjustable.</description>
     </key>
+    <key type="b" name="shell-menu-keep-dock-radius">
+      <default>false</default>
+      <summary>Keep the default Dash to Dock corner radius</summary>
+      <description>Keep the corners supplied by the dock theme while using the Shell menu border and shadow, including compact and panel modes.</description>
+    </key>
+    <key type="i" name="dock-shadow-intensity">
+      <default>100</default>
+      <range min="0" max="200"/>
+      <summary>Outer shadow intensity relative to the Shell menu theme</summary>
+      <description>100 keeps the exact Quick Settings shadow, 0 removes it and 200 doubles its opacity, capped at fully opaque. The border, blur radius and shadow dimensions remain unchanged.</description>
+    </key>
+    <key type="i" name="dock-height">
+      <default>0</default>
+      <range min="0" max="256"/>
+      <summary>Dock height in logical pixels</summary>
+      <description>Minimum surface height independent of icon size. Zero uses automatic sizing. For vertical docks this controls surface width. The dock always keeps enough space for its icons.</description>
+    </key>
     <key type="b" name="icon-shadow">
       <default>false</default>
       <summary>Soft icon shadow</summary>
