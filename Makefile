@@ -1,10 +1,11 @@
 # Basic Makefile
 
-UUID = dash-to-dock-soft@local
+UUID = dash-to-dock-shell-soft@local
 BASE_MODULES = extension.js \
                metadata.json \
                COPYING \
                README.md \
+               README-Dash-to-Dock-Soft.md \
                AUTHORS.md \
                $(NULL)
 
@@ -26,6 +27,7 @@ EXTRA_MODULES = \
                 intellihide.js \
                 prefs.js \
                 theming.js \
+                shellMenuStyle.js \
                 blurBackend.js \
                 blurRedrawGuard.js \
                 dockRedrawRecovery.js \
@@ -50,7 +52,7 @@ else
 	SHARE_PREFIX = $(DESTDIR)/usr/share
 	INSTALLBASE = $(SHARE_PREFIX)/gnome-shell/extensions
 endif
-INSTALLNAME = dash-to-dock-soft@local
+INSTALLNAME = dash-to-dock-shell-soft@local
 
 # The command line passed variable VERSION is used to set the version string
 # in the metadata and in the generated zip-file. If no VERSION is passed, the
@@ -72,7 +74,7 @@ clean:
 
 extension: ./schemas/gschemas.compiled ./stylesheet.css $(MSGSRC:.po=.mo)
 
-./schemas/gschemas.compiled: ./schemas/org.gnome.shell.extensions.dash-to-dock-soft.gschema.xml
+./schemas/gschemas.compiled: ./schemas/org.gnome.shell.extensions.dash-to-dock-shell-soft.gschema.xml
 	glib-compile-schemas ./schemas/
 
 potfile: ./po/dashtodock.pot

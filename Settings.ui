@@ -2036,6 +2036,46 @@
                       <object class="GtkListBoxRow">
                         <property name="activatable">0</property>
                         <property name="child">
+                          <object class="GtkBox">
+                            <property name="margin_start">12</property>
+                            <property name="margin_end">12</property>
+                            <property name="margin_top">12</property>
+                            <property name="margin_bottom">12</property>
+                            <property name="spacing">24</property>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="orientation">vertical</property>
+                                <property name="spacing">4</property>
+                                <property name="hexpand">1</property>
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="label" translatable="yes">Shell menu outline and shadow</property>
+                                    <property name="xalign">0</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="label" translatable="yes">Follow the colors, corners, outline and outer shadow of notifications and Quick Settings.</property>
+                                    <property name="xalign">0</property>
+                                    <property name="wrap">1</property>
+                                    <style><class name="dim-label"/></style>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkSwitch" id="shell_menu_style_switch">
+                                <property name="valign">center</property>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="activatable">0</property>
+                        <property name="child">
                           <object class="GtkGrid">
                             <property name="margin_start">12</property>
                             <property name="margin_end">12</property>
@@ -2730,7 +2770,7 @@
             <child>
               <object class="GtkLabel" id="extension_name">
                 <property name="can_focus">0</property>
-                <property name="label">&lt;b&gt;Dash to Dock Soft&lt;/b&gt;</property>
+                <property name="label">&lt;b&gt;Dash to Dock Shell Soft&lt;/b&gt;</property>
                 <property name="use_markup">1</property>
               </object>
             </child>
@@ -2757,7 +2797,7 @@
             <child>
               <object class="GtkLabel" id="extension_description">
                 <property name="can_focus">0</property>
-                <property name="label" translatable="yes">Independent fork of Dash to Dock with soft icon shadows, a dock outline and background blur</property>
+                <property name="label" translatable="yes">Independent fork of Dash to Dock Soft with the outline and outer shadow of GNOME Shell menus</property>
                 <property name="justify">center</property>
                 <property name="wrap">1</property>
                 <property name="xalign">0</property>

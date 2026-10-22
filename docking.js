@@ -183,8 +183,16 @@ const DashSlideContainer = GObject.registerClass({
 
         this.child.allocate(childBox);
 
-        this.child.set_clip(-childBox.x1, -childBox.y1,
-            -childBox.x1 + availWidth, -childBox.y1 + availHeight);
+        if (DockManager.settings.shellMenuStyle && this.slideX === 1) {
+            // A menu-style shadow extends beyond allocation. Keep the input
+            // region in the slider, but allow its fully shown child to paint it.
+            this.child.remove_clip();
+        } else {
+            // Preserve the slide viewport during autohide, including its final
+            // hidden frame: neither icons nor shadow may remain on screen.
+            this.child.set_clip(-childBox.x1, -childBox.y1,
+                -childBox.x1 + availWidth, -childBox.y1 + availHeight);
+        }
     }
 
     /**
@@ -1845,7 +1853,7 @@ export class DockManager {
         this._vfuncInjections = new Utils.VFuncInjectionsHandler(this);
         this._propertyInjections = new Utils.PropertyInjectionsHandler(this);
         this._settings = this._extension.getSettings(
-            'org.gnome.shell.extensions.dash-to-dock-soft');
+            'org.gnome.shell.extensions.dash-to-dock-shell-soft');
         this._appSwitcherSettings = new Gio.Settings({schema_id: 'org.gnome.shell.app-switcher'});
         this._mapSettingsValues();
 

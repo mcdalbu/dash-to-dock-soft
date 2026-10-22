@@ -8,4 +8,8 @@ stylesheet.css
 Settings.ui.h
 _build
 
-dash-to-dock-soft@local*.zip
+dash-to-dock-shell-soft@local*.zip
+
+validation/*.log
+__pycache__/
+*.pyc

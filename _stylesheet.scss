@@ -321,6 +321,18 @@ $dock_style_modes: null, shrink, extended, extended-shrink;
             }
 
             @include dock-container-style($side, $style_mode, $parameters);
+
+            @if not $is_extended {
+                &.shell-menu-style {
+                    // Leave room between the floating surface and the screen
+                    // edge for the same outer shadow used by Shell popovers.
+                    $shell_parameters: map-merge($parameters, (
+                        side_margin: $dash_edge_offset,
+                        fixed_inner_margin: $dash_edge_offset,
+                    ));
+                    @include dock-container-style($side, $style_mode, $shell_parameters);
+                }
+            }
         }
 
         .dash-label.#{$side} {

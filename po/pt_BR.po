@@ -817,3 +817,13 @@ msgstr "Desfoque da sombra (px)"
 #: Settings.ui
 msgid "Outline intensity (%)"
 msgstr "Intensidade do contorno (%)"
+
+# Shell Soft fork appearance
+msgid "Shell menu outline and shadow"
+msgstr "Contorno e sombra dos menus do Shell"
+
+msgid "Follow the colors, corners, outline and outer shadow of notifications and Quick Settings."
+msgstr "Usar as cores, os cantos, o contorno e a sombra externa das notificações e das configurações rápidas."
+
+msgid "Independent fork of Dash to Dock Soft with the outline and outer shadow of GNOME Shell menus"
+msgstr "Fork independente do Dash to Dock Soft com o contorno e a sombra externa dos menus do GNOME Shell"

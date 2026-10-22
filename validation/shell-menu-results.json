@@ -1,0 +1,274 @@
+{
+  "own-identity": true,
+  "profile-default": true,
+  "dark": {
+    "dock": {
+      "borders": [
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ]
+      ],
+      "corners": [
+        36,
+        36,
+        36,
+        36
+      ],
+      "shadow": {
+        "x": 0,
+        "y": 2,
+        "blur": 4,
+        "spread": 0,
+        "color": [
+          0,
+          0,
+          0,
+          51
+        ],
+        "inset": false
+      }
+    },
+    "menu": {
+      "borders": [
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ]
+      ],
+      "corners": [
+        36,
+        36,
+        36,
+        36
+      ],
+      "shadow": {
+        "x": 0,
+        "y": 2,
+        "blur": 4,
+        "spread": 0,
+        "color": [
+          0,
+          0,
+          0,
+          51
+        ],
+        "inset": false
+      }
+    },
+    "fill": 140
+  },
+  "dark-border-shadow-corners-match": true,
+  "dark-actual-opacity": true,
+  "dark-position-0": true,
+  "dark-position-1": true,
+  "dark-position-2": true,
+  "dark-position-3": true,
+  "light": {
+    "dock": {
+      "borders": [
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ]
+      ],
+      "corners": [
+        36,
+        36,
+        36,
+        36
+      ],
+      "shadow": {
+        "x": 0,
+        "y": 2,
+        "blur": 4,
+        "spread": 0,
+        "color": [
+          0,
+          0,
+          0,
+          12
+        ],
+        "inset": false
+      }
+    },
+    "menu": {
+      "borders": [
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ]
+      ],
+      "corners": [
+        36,
+        36,
+        36,
+        36
+      ],
+      "shadow": {
+        "x": 0,
+        "y": 2,
+        "blur": 4,
+        "spread": 0,
+        "color": [
+          0,
+          0,
+          0,
+          12
+        ],
+        "inset": false
+      }
+    },
+    "fill": 140
+  },
+  "light-border-shadow-corners-match": true,
+  "light-actual-opacity": true,
+  "light-position-0": true,
+  "light-position-1": true,
+  "light-position-2": true,
+  "light-position-3": true,
+  "live-menu-style": true,
+  "scale-2": true,
+  "dynamic-transparency-keeps-surface": true,
+  "profile-off": true,
+  "profile-on": true,
+  "full-shadow-unclipped": true,
+  "autohide-viewport": true,
+  "shadow-after-show": true,
+  "idle-frames": 0,
+  "disable-cleanup": true,
+  "reenable": true,
+  "preferences": {
+    "passed": true,
+    "output": "Preferences: profile binding, defaults and dependent controls passed"
+  },
+  "passed": true
+}

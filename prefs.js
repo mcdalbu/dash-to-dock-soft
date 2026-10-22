@@ -183,7 +183,7 @@ const DockSettings = GObject.registerClass({
 
         this._extensionPreferences = extensionPreferences;
         this._settings = extensionPreferences.getSettings(
-            'org.gnome.shell.extensions.dash-to-dock-soft');
+            'org.gnome.shell.extensions.dash-to-dock-shell-soft');
         this._appSwitcherSettings = new Gio.Settings({schema_id: 'org.gnome.shell.app-switcher'});
         this._rtl = Gtk.Widget.get_default_direction() === Gtk.TextDirection.RTL;
 
@@ -216,6 +216,9 @@ const DockSettings = GObject.registerClass({
     }
 
     _onWindowsClosed() {
+        for (const id of this._surfaceSignals ?? [])
+            this._settings.disconnect(id);
+        this._surfaceSignals = [];
         if (this._dock_size_timeout) {
             GLib.source_remove(this._dock_size_timeout);
             delete this._dock_size_timeout;
@@ -997,6 +1000,10 @@ const DockSettings = GObject.registerClass({
             this._builder.get_object('dock_outline_switch'),
             'active',
             Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('shell-menu-style',
+            this._builder.get_object('shell_menu_style_switch'),
+            'active',
+            Gio.SettingsBindFlags.DEFAULT);
         this._settings.bind('dock-outline-intensity',
             this._builder.get_object('dock_outline_intensity_adjustment'),
             'value',
@@ -1027,6 +1034,18 @@ const DockSettings = GObject.registerClass({
             this._builder.get_object('dock_blur_corner_radius_scale'),
             'sensitive',
             Gio.SettingsBindFlags.GET);
+
+        const syncSurfaceControls = () => {
+            const followsShell = this._settings.get_boolean('shell-menu-style');
+            this._builder.get_object('dock_outline_switch').sensitive = !followsShell;
+            this._builder.get_object('dock_outline_intensity_scale').sensitive =
+                !followsShell && this._settings.get_boolean('dock-outline');
+            this._builder.get_object('dock_blur_corner_radius_scale').sensitive =
+                !followsShell && this._settings.get_boolean('dock-blur');
+        };
+        this._surfaceSignals = ['shell-menu-style', 'dock-outline', 'dock-blur'].map(key =>
+            this._settings.connect(`changed::${key}`, syncSurfaceControls));
+        syncSurfaceControls();
 
         this._settings.bind('apply-custom-theme',
             this._builder.get_object('customize_theme'),
