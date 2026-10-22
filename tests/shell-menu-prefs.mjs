@@ -41,6 +41,18 @@ const corners = controls.get('dock_blur_corner_radius_scale');
 const keepRadius = controls.get('shell_menu_keep_dock_radius_switch');
 const height = controls.get('dock_height_scale');
 const shadow = controls.get('dock_shadow_intensity_scale');
+const colors = controls.get('shell_menu_colors_switch');
+const customColorRow = controls.get('custom_background_color_listboxrow');
+const customColorSwitch = controls.get('custom_background_color_switch');
+assert(colors.active && colors.sensitive && !customColorRow.sensitive, 'Shell colors enabled by default');
+customColorSwitch.active = true;
+colors.active = false;
+assert(!settings.get_boolean('shell-menu-colors') && customColorRow.sensitive && customColorSwitch.active,
+    'Turning off Shell colors restores the saved custom color controls');
+settings.set_boolean('shell-menu-colors', true);
+assert(colors.active && !customColorRow.sensitive && customColorSwitch.active,
+    'Settings update colors toggle without clearing the custom color');
+settings.reset('custom-background-color');
 assert(!keepRadius.active && keepRadius.sensitive, 'Keep-radius option preserves v1 default');
 assert(shadow.get_value() === 100 && shadow.get_adjustment().upper === 200 && shadow.sensitive,
     'Shadow defaults to the Quick Settings intensity');
@@ -61,6 +73,7 @@ keepRadius.active = true;
 assert(settings.get_boolean('shell-menu-keep-dock-radius'), 'Keep-radius switch binding');
 assert(profile.active && !outline.sensitive && !corners.sensitive, 'Profile defaults and sensitivity');
 profile.active = false;
+assert(colors.sensitive && colors.active, 'Shell colors work independently of outline and shadow');
 assert(!settings.get_boolean('shell-menu-style') && outline.sensitive && corners.sensitive,
     'Manual controls after disabling profile');
 assert(!keepRadius.sensitive && !shadow.sensitive && keepRadius.active,
@@ -124,4 +137,4 @@ if (captureDir) {
     GLib.source_remove(timeout);
 }
 window.destroy();
-print('Preferences: height, native radius, shadow intensity, defaults and dependent controls passed');
+print('Preferences: Shell colors, saved custom color, height, radius, shadow and dependent controls passed');

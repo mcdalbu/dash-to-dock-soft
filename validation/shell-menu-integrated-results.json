@@ -124,6 +124,7 @@
   },
   "dark-border-shadow-corners-match": true,
   "dark-actual-opacity": true,
+  "dark-shell-menu-colors": true,
   "dark-quick-settings-trace": {
     "styles": 0,
     "updates": 0,
@@ -322,6 +323,7 @@
   },
   "light-border-shadow-corners-match": true,
   "light-actual-opacity": true,
+  "light-shell-menu-colors": true,
   "light-quick-settings-trace": {
     "styles": 0,
     "updates": 0,
@@ -397,6 +399,13 @@
   "light-position-1": true,
   "light-position-2": true,
   "light-position-3": true,
+  "shell-colors-override-saved-custom-color": true,
+  "colors-off-restores-custom-color": true,
+  "shell-colors-independent-of-outline": true,
+  "colors-only-follows-live-menu-color": true,
+  "shell-colors-opacity-mode-0": true,
+  "shell-colors-opacity-mode-3": true,
+  "shell-colors-built-in-theme": true,
   "live-menu-style": true,
   "scale-2": true,
   "dynamic-transparency-keeps-surface": true,
@@ -632,7 +641,7 @@
       ]
     },
     {
-      "slide": 0.30694375,
+      "slide": 0.302775,
       "clip": [
         -450,
         -978.4375,
@@ -645,7 +654,7 @@
       ],
       "background": [
         450,
-        971.76171875,
+        972.14453125,
         539,
         80
       ]
@@ -654,7 +663,7 @@
       "slide": 0.37194374999999996,
       "clip": [
         -450,
-        -971.76171875,
+        -972.14453125,
         1440,
         1000
       ],
@@ -803,7 +812,7 @@
       ]
     },
     {
-      "slide": 0.79069375,
+      "slide": 0.7884,
       "clip": [
         -450,
         -931,
@@ -816,7 +825,7 @@
       ],
       "background": [
         450,
-        927.2578125,
+        927.46875,
         539,
         80
       ]
@@ -825,7 +834,7 @@
       "slide": 0.82569375,
       "clip": [
         -450,
-        -927.2578125,
+        -927.46875,
         1440,
         1000
       ],
@@ -1145,7 +1154,7 @@
       ]
     },
     {
-      "slide": 0.5625,
+      "slide": 0.5587562500000001,
       "clip": [
         -450,
         -942.58203125,
@@ -1158,7 +1167,7 @@
       ],
       "background": [
         450,
-        948.25,
+        948.59375,
         539,
         80
       ]
@@ -1167,7 +1176,7 @@
       "slide": 0.50055625,
       "clip": [
         -450,
-        -948.25,
+        -948.59375,
         1440,
         1000
       ],
@@ -1202,7 +1211,7 @@
       ]
     },
     {
-      "slide": 0.390625,
+      "slide": 0.38750624999999994,
       "clip": [
         -450,
         -959.31640625,
@@ -1215,7 +1224,7 @@
       ],
       "background": [
         450,
-        964.0625,
+        964.34765625,
         539,
         80
       ]
@@ -1224,7 +1233,7 @@
       "slide": 0.33930625000000003,
       "clip": [
         -450,
-        -964.0625,
+        -964.34765625,
         1440,
         1000
       ],
@@ -1259,7 +1268,7 @@
       ]
     },
     {
-      "slide": 0.25,
+      "slide": 0.24750625000000004,
       "clip": [
         -450,
         -973.171875,
@@ -1272,7 +1281,7 @@
       ],
       "background": [
         450,
-        977,
+        977.23046875,
         539,
         80
       ]
@@ -1281,7 +1290,7 @@
       "slide": 0.20930625000000003,
       "clip": [
         -450,
-        -977,
+        -977.23046875,
         1440,
         1000
       ],
@@ -1316,7 +1325,7 @@
       ]
     },
     {
-      "slide": 0.140625,
+      "slide": 0.13875625000000003,
       "clip": [
         -450,
         -984.15625,
@@ -1329,7 +1338,7 @@
       ],
       "background": [
         450,
-        987.0625,
+        987.234375,
         539,
         80
       ]
@@ -1338,7 +1347,7 @@
       "slide": 0.11055625000000002,
       "clip": [
         -450,
-        -987.0625,
+        -987.234375,
         1440,
         1000
       ],
@@ -1430,7 +1439,7 @@
       ]
     },
     {
-      "slide": 0.015625,
+      "slide": 0.015006249999999999,
       "clip": [
         -450,
         -997.49609375,
@@ -1443,7 +1452,7 @@
       ],
       "background": [
         450,
-        998.5625,
+        998.62109375,
         539,
         80
       ]
@@ -1452,7 +1461,7 @@
       "slide": 0.006806250000000014,
       "clip": [
         -450,
-        -998.5625,
+        -998.62109375,
         1440,
         1000
       ],
@@ -1562,32 +1571,32 @@
   "preferences-appearance-layout": {
     "dock_shadow_intensity_scale": {
       "x": 333,
-      "y": 319,
+      "y": 405,
       "width": 392,
       "height": 42
     },
     "dock_outline_intensity_scale": {
       "x": 333,
-      "y": 795,
+      "y": 881,
       "width": 392,
       "height": 42
     },
     "icon_shadow_intensity_scale": {
       "x": 333,
-      "y": 977,
+      "y": 1063,
       "width": 392,
       "height": 42
     },
     "dock_blur_radius_scale": {
       "x": 333,
-      "y": 543,
+      "y": 629,
       "width": 392,
       "height": 42
     }
   },
   "preferences": {
     "passed": true,
-    "output": "Preferences: height, native radius, shadow intensity, defaults and dependent controls passed"
+    "output": "Preferences: Shell colors, saved custom color, height, radius, shadow and dependent controls passed"
   },
   "passed": true
 }

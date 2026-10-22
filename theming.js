@@ -65,26 +65,33 @@ function getShellMenuBox() {
  */
 function applyDockSurfaceStyle(dock) {
     const {settings} = Docking.DockManager;
-    if (!settings.shellMenuStyle && !settings.dockOutline && !settings.dockBlur)
+    if (!settings.shellMenuStyle && !settings.shellMenuColors && !settings.dockOutline && !settings.dockBlur)
         return;
 
     const background = dock.dash._background;
     let style = background.get_style() || '';
     if (style && !style.trimEnd().endsWith(';'))
         style += ';';
-    const menu = settings.shellMenuStyle ? getShellMenuBox() : null;
-    if (menu) {
+    const menu = settings.shellMenuStyle || settings.shellMenuColors ? getShellMenuBox() : null;
+    if (menu && settings.shellMenuStyle) {
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         style += shellMenuSurfaceStyle(menu.get_theme_node(), scale,
             settings.shellMenuKeepDockRadius, settings.dockShadowIntensity);
     } else if (settings.dockOutline) {
-        const color = background.get_theme_node().get_background_color();
+        const color = (settings.shellMenuColors && menu ? menu : background)
+            .get_theme_node().get_background_color();
         const luminance = (0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue) / 255;
         const alpha = settings.dockOutlineIntensity / 100;
         const borderColor = luminance > 0.5 ? `rgba(0, 0, 0, ${alpha})` : `rgba(255, 255, 255, ${alpha})`;
         style += `border: 1px solid ${borderColor};`;
     }
-    if (settings.dockBlur)
+    if (menu && settings.shellMenuColors) {
+        const color = menu.get_theme_node().get_background_color();
+        const alpha = settings.transparencyMode === TransparencyMode.FIXED
+            ? settings.backgroundOpacity : background.get_theme_node().get_background_color().alpha / 255;
+        style += `background-color: rgba(${color.red}, ${color.green}, ${color.blue}, ${alpha});`;
+    }
+    if (settings.dockBlur || menu && settings.shellMenuColors)
         style += 'background-image: none;';
     background.set_style(style);
 }
@@ -188,7 +195,7 @@ export class ThemeManager {
 
     _getShellMenuSignature() {
         const {settings} = Docking.DockManager;
-        const menu = settings.shellMenuStyle ? getShellMenuBox() : null;
+        const menu = settings.shellMenuStyle || settings.shellMenuColors ? getShellMenuBox() : null;
         if (!menu)
             return null;
         const node = menu.get_theme_node();
@@ -196,13 +203,15 @@ export class ThemeManager {
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         // Dock opacity is independent of the menu opacity. In particular,
         // ignore Gnome Shell Soft briefly restoring its original menu fill.
-        const surface = shellMenuSurfaceStyle(node, scale,
-            settings.shellMenuKeepDockRadius, settings.dockShadowIntensity);
-        return `${color.red},${color.green},${color.blue};${surface}`;
+        const surface = settings.shellMenuStyle ? shellMenuSurfaceStyle(
+            node, scale, settings.shellMenuKeepDockRadius, settings.dockShadowIntensity) : '';
+        const fill = settings.shellMenuColors ? `${color.red},${color.green},${color.blue}` : '';
+        return `${fill};${surface}`;
     }
 
     _queueUpdateShellMenuStyle() {
-        if (this._shellMenuLater || !Docking.DockManager.settings.shellMenuStyle)
+        const {settings} = Docking.DockManager;
+        if (this._shellMenuLater || !(settings.shellMenuStyle || settings.shellMenuColors))
             return;
         this._shellMenuLater = Utils.laterAdd(Meta.LaterType.BEFORE_REDRAW, () => {
             const signature = this._getShellMenuSignature();
@@ -263,7 +272,7 @@ export class ThemeManager {
     }
 
     _getDefaultColors() {
-        const menu = Docking.DockManager.settings.shellMenuStyle ? getShellMenuBox() : null;
+        const menu = Docking.DockManager.settings.shellMenuColors ? getShellMenuBox() : null;
         if (menu) {
             const node = menu.get_theme_node();
             return [node.get_background_color(), node.get_border_color(St.Side.TOP)];
@@ -301,7 +310,7 @@ export class ThemeManager {
 
         const {settings} = Docking.DockManager;
 
-        if (settings.customBackgroundColor) {
+        if (settings.customBackgroundColor && !(settings.shellMenuColors && getShellMenuBox())) {
             // When applying a custom color, we need to check the alpha value,
             // if not the opacity will always be overridden by the color below.
             // Note that if using 'dynamic' transparency modes,
@@ -812,6 +821,7 @@ export class ThemeManager {
     _bindSettingsChanges() {
         const keys = ['transparency-mode',
             'shell-menu-style',
+            'shell-menu-colors',
             'shell-menu-keep-dock-radius',
             'dock-shadow-intensity',
             'customize-alphas',

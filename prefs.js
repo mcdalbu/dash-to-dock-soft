@@ -221,7 +221,8 @@ const DockSettings = GObject.registerClass({
         const valuePosition = this._rtl ? Gtk.PositionType.LEFT : Gtk.PositionType.RIGHT;
         const appearance = this._builder.get_object('listbox1');
         const rowFor = id => this._builder.get_object(id).get_ancestor(Gtk.ListBoxRow);
-        const appearanceOrder = ['shell_menu_style_switch', 'shell_menu_keep_dock_radius_switch',
+        const appearanceOrder = ['shell_menu_style_switch', 'shell_menu_colors_switch',
+            'shell_menu_keep_dock_radius_switch',
             'dock_shadow_intensity_scale', 'dock_blur_switch', 'dock_blur_radius_scale',
             'dock_blur_corner_radius_scale', 'dock_outline_switch', 'dock_outline_intensity_scale',
             'icon_shadow_switch', 'icon_shadow_intensity_scale', 'icon_shadow_offset_x_scale',
@@ -1091,6 +1092,14 @@ const DockSettings = GObject.registerClass({
             this._builder.get_object('shell_menu_style_switch'),
             'active',
             Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('shell-menu-colors',
+            this._builder.get_object('shell_menu_colors_switch'),
+            'active',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('shell-menu-colors',
+            this._builder.get_object('custom_background_color_listboxrow'),
+            'sensitive',
+            Gio.SettingsBindFlags.INVERT_BOOLEAN | Gio.SettingsBindFlags.GET);
         this._settings.bind('shell-menu-keep-dock-radius',
             this._builder.get_object('shell_menu_keep_dock_radius_switch'),
             'active',

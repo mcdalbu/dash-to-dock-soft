@@ -176,6 +176,8 @@ def test():
                  'return {borders:[0,1,2,3].map(i=>[n.get_border_width(i),c(n.get_border_color(i))]), '
                  'corners:[0,1,2,3].map(i=>n.get_border_radius(i)), '
                  'shadow:s?{x:s.xoffset,y:s.yoffset,blur:s.blur,spread:s.spread,color:c(s.color),inset:s.inset}:null}; };')
+        evaluate('globalThis.fillValues=actor=>{const c=actor.get_theme_node().get_background_color(); '
+                 'return [c.red,c.green,c.blue,c.alpha];};')
         for theme in ['dark','light']:
             evaluate(f'globalThis.interfaceSettings = new Gio.Settings({{schema_id:"org.gnome.desktop.interface"}}); '
                      f'interfaceSettings.set_string("color-scheme","prefer-{theme}");')
@@ -189,6 +191,8 @@ def test():
                   'JSON.stringify(surfaceValues(background)) === JSON.stringify(surfaceValues(menu.box))')
             check(f'{theme}-actual-opacity',
                   'Math.abs(background.get_theme_node().get_background_color().alpha - 140) <= 1')
+            check(f'{theme}-shell-menu-colors',
+                  'JSON.stringify(fillValues(background).slice(0,3)) === JSON.stringify(fillValues(menu.box).slice(0,3))')
             time.sleep(0.6)
             evaluate('globalThis.menuTrace={styles:0,updates:0,alphas:[]}; '
                      'globalThis.styleTraceId=background.connect("notify::style",()=>menuTrace.styles++); '
@@ -234,6 +238,42 @@ def test():
                      'Gio.FileCreateFlags.REPLACE_DESTINATION,null); await new Shell.Screenshot().screenshot(false,stream); '
                      'stream.close(null); return true;})()')
             evaluate('menu.close();')
+        evaluate('globalThis.colorTestStyle=menu.box.get_style(); '
+                 'menu.box.set_style("background-color: rgb(32,84,128);"); '
+                 'manager.settings.set_string("background-color","rgb(197,43,71)"); '
+                 'manager.settings.set_boolean("custom-background-color",true);')
+        time.sleep(0.4)
+        check('shell-colors-override-saved-custom-color',
+              'JSON.stringify(fillValues(background)) === "[32,84,128,140]"')
+        evaluate('manager.settings.set_boolean("shell-menu-colors",false);')
+        time.sleep(0.4)
+        check('colors-off-restores-custom-color',
+              'JSON.stringify(fillValues(background)) === "[197,43,71,140]" && '
+              'JSON.stringify(surfaceValues(background)) === JSON.stringify(surfaceValues(menu.box))')
+        evaluate('manager.settings.set_boolean("shell-menu-style",false); '
+                 'manager.settings.set_boolean("shell-menu-colors",true);')
+        time.sleep(0.4)
+        check('shell-colors-independent-of-outline',
+              'JSON.stringify(fillValues(background)) === "[32,84,128,140]" && '
+              '!background.get_style().includes("box-shadow")')
+        evaluate('menu.box.set_style("background-color: rgb(61,102,43);");')
+        time.sleep(0.4)
+        check('colors-only-follows-live-menu-color', 'JSON.stringify(fillValues(background)) === "[61,102,43,140]"')
+        for mode in [0,3]:
+            evaluate(f'manager.settings.set_enum("transparency-mode",{mode});')
+            time.sleep(0.4)
+            check(f'shell-colors-opacity-mode-{mode}',
+                  'JSON.stringify(fillValues(background).slice(0,3)) === "[61,102,43]"')
+        evaluate('manager.settings.set_boolean("apply-custom-theme",true);')
+        time.sleep(0.4)
+        check('shell-colors-built-in-theme',
+              'JSON.stringify(fillValues(background).slice(0,3)) === "[61,102,43]"')
+        evaluate('manager.settings.set_boolean("apply-custom-theme",false); '
+                 'manager.settings.set_boolean("shell-menu-style",true); '
+                 'manager.settings.set_enum("transparency-mode",1); '
+                 'manager.settings.reset("custom-background-color");manager.settings.reset("background-color"); '
+                 'menu.box.set_style(colorTestStyle);')
+        time.sleep(0.4)
         evaluate('globalThis.originalMenuStyle=menu.box.get_style(); '
                  'menu.box.set_style("border: 2px solid rgba(180, 90, 30, 0.8); border-radius: 19px; " + '
                  '"box-shadow: 0 3px 8px 1px rgba(10,20,30,0.3);");')

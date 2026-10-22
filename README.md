@@ -8,7 +8,7 @@ menus de notificações/calendário e Quick Settings do GNOME Shell.
 - **Nome:** Dash to Dock Soft
 - **UUID:** `dash-to-dock-soft@local`
 - **Schema:** `org.gnome.shell.extensions.dash-to-dock-soft`
-- **Versão deste fork:** 17
+- **Versão deste fork:** 18
 - **Repositório:** [mcdalbu/dash-to-dock-soft](https://github.com/mcdalbu/dash-to-dock-soft)
 
 Esta versão atualiza o Dash to Dock Soft principal e mantém seu UUID, schema
@@ -25,8 +25,9 @@ do relógio como alternativa), incluindo:
 
 - cor e espessura de cada lado do contorno;
 - raio de cada canto;
-- cor, opacidade, deslocamento, desfoque e expansão da sombra externa;
-- cor do fundo, preservando a opacidade escolhida para o dock.
+- cor, opacidade, deslocamento, desfoque e expansão da sombra externa.
+
+A cor do fundo tem um controle independente, descrito abaixo.
 
 Acompanha mudanças entre tema claro e escuro e estilos aplicados ao menu por
 **Gnome Shell Soft**. Não aplica transparência aos ícones nem os desfoca.
@@ -53,6 +54,19 @@ do Quick Settings, incluindo a diferença entre os temas claro e escuro. **0%**
 remove a sombra; **200%** duplica sua opacidade, limitada a 100% de opacidade
 real. A cor, os deslocamentos e o desfoque permanecem os do tema. Esse controle
 fica disponível com o estilo dos menus ativado.
+
+## Cores dos menus do Shell
+
+Em **Preferências → Aparência**, o toggle **Usar as cores dos menus do Shell**
+aplica ao fundo do dock a cor do Quick Settings, com o menu de notificações/calendário
+como alternativa. Acompanha o tema claro/escuro e alterações da cor dos menus.
+Vem ativado para manter o perfil visual do fork e funciona independentemente do
+toggle de contorno e sombra, inclusive com o tema integrado do dock.
+
+A opacidade continua sendo a do dock: a cor dos menus não copia sua transparência.
+Enquanto esse toggle está ativo, o controle de cor personalizada fica desabilitado.
+Ao desativá-lo, a cor personalizada salva ou a cor padrão do dock volta a ser usada,
+sem apagar os ajustes anteriores. Os ícones mantêm suas cores.
 
 ## Altura do dock
 
@@ -97,7 +111,7 @@ retos, enquanto a superfície continua arredondada. A biblioteca é opcional e n
 ## Instalar
 
 ```bash
-gnome-extensions install --force dash-to-dock-soft@local_v17.zip
+gnome-extensions install --force dash-to-dock-soft@local_v18.zip
 ```
 
 Encerre a sessão e entre novamente para carregar a atualização. Depois:
@@ -122,7 +136,7 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=17
+make zip-file VERSION=18
 ```
 
 O teste de integração inicia um GNOME Shell 50 headless em D-Bus e diretórios de

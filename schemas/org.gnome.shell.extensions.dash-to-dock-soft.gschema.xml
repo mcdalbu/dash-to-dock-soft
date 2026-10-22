@@ -54,7 +54,12 @@
     <key type="b" name="shell-menu-style">
       <default>true</default>
       <summary>Shell menu outline and shadow</summary>
-      <description>Match the background color, border, corners and outer shadow of the active Shell menu theme. Background opacity remains adjustable.</description>
+      <description>Match the border, corners and outer shadow of the active Shell menu theme. Background colors are controlled separately.</description>
+    </key>
+    <key type="b" name="shell-menu-colors">
+      <default>true</default>
+      <summary>Use Shell menu background colors</summary>
+      <description>Use the background color of Quick Settings, falling back to the notification menu. Keep the dock opacity and follow theme changes independently of the Shell outline and shadow. The saved custom color is restored when disabled.</description>
     </key>
     <key type="b" name="shell-menu-keep-dock-radius">
       <default>false</default>
