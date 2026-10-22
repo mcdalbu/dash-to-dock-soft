@@ -69,9 +69,9 @@
     </key>
     <key type="i" name="dock-height">
       <default>0</default>
-      <range min="0" max="256"/>
-      <summary>Dock height in logical pixels</summary>
-      <description>Minimum surface height independent of icon size. Zero uses automatic sizing. For vertical docks this controls surface width. The dock always keeps enough space for its icons.</description>
+      <range min="-256" max="256"/>
+      <summary>Dock vertical position offset in logical pixels</summary>
+      <description>Positive values move the dock up, negative values move it down. Zero keeps its original position. The dock remains inside its monitor; its thickness and icon size are unchanged.</description>
     </key>
     <key type="b" name="icon-shadow">
       <default>false</default>

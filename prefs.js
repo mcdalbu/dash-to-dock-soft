@@ -192,6 +192,7 @@ const DockSettings = GObject.registerClass({
         this._builder.set_translation_domain(
             extensionPreferences.metadata['gettext-domain']);
         this._builder.add_from_file(`${extensionPreferences.path}/Settings.ui`);
+        this._standardizeLayout();
 
         const notebook = this._builder.get_object('settings_notebook');
         const group = new Adw.PreferencesGroup();
@@ -213,6 +214,86 @@ const DockSettings = GObject.registerClass({
 
         this._monitorsConfig = new MonitorsConfig();
         this._bindSettings();
+    }
+
+    _standardizeLayout() {
+        const notebook = this._builder.get_object('settings_notebook');
+        const valuePosition = this._rtl ? Gtk.PositionType.LEFT : Gtk.PositionType.RIGHT;
+        const appearance = this._builder.get_object('listbox1');
+        const rowFor = id => this._builder.get_object(id).get_ancestor(Gtk.ListBoxRow);
+        const appearanceOrder = ['shell_menu_style_switch', 'shell_menu_keep_dock_radius_switch',
+            'dock_shadow_intensity_scale', 'dock_blur_switch', 'dock_blur_radius_scale',
+            'dock_blur_corner_radius_scale', 'dock_outline_switch', 'dock_outline_intensity_scale',
+            'icon_shadow_switch', 'icon_shadow_intensity_scale', 'icon_shadow_offset_x_scale',
+            'icon_shadow_offset_y_scale', 'icon_shadow_blur_scale'];
+        for (const [index, id] of appearanceOrder.entries()) {
+            const row = rowFor(id);
+            appearance.remove(row);
+            appearance.insert(row, index);
+        }
+        const sections = new Map([
+            [rowFor('shell_menu_style_switch'), __('Shell menu appearance')],
+            [rowFor('dock_blur_switch'), __('Background blur')],
+            [rowFor('dock_outline_switch'), __('Manual outline')],
+            [rowFor('icon_shadow_switch'), __('Icon shadows')],
+        ]);
+        appearance.set_header_func((row, previous) => {
+            const title = sections.get(row);
+            row.set_header(title ? new Gtk.Label({
+                label: title, xalign: 0, margin_start: 12, margin_bottom: 8,
+                margin_top: previous ? 16 : 0, css_classes: ['heading'],
+            }) : null);
+        });
+        this._preferenceSizeGroups = [];
+        for (let page = 0; page < notebook.get_n_pages(); page++) {
+            const labels = new Gtk.SizeGroup({mode: Gtk.SizeGroupMode.HORIZONTAL});
+            this._preferenceSizeGroups.push(labels);
+            const alignLabel = (label, title = false) => {
+                label.xalign = 0;
+                label.wrap = true;
+                label.max_width_chars = title ? 28 : 60;
+                if (title) {
+                    label.width_chars = 22;
+                    labels.add_widget(label);
+                }
+            };
+            const visit = widget => {
+                if (widget instanceof Gtk.ListBoxRow) {
+                    widget.height_request = -1;
+                    const layout = widget.get_child();
+                    if (layout instanceof Gtk.Grid || layout instanceof Gtk.Box) {
+                        layout.margin_start = layout.margin_end = 12;
+                        layout.margin_top = layout.margin_bottom = 12;
+                        if (layout instanceof Gtk.Grid) {
+                            layout.column_spacing = 24;
+                            layout.row_spacing = 6;
+                        } else {
+                            layout.spacing = layout.orientation === Gtk.Orientation.HORIZONTAL ? 24 : 6;
+                        }
+                        for (let child = layout.get_first_child(); child; child = child.get_next_sibling()) {
+                            if (child instanceof Gtk.Label) {
+                                const cell = layout instanceof Gtk.Grid
+                                    ? layout.get_layout_manager().get_layout_child(child) : null;
+                                const title = cell ? cell.column === 0 && cell.row === 0
+                                    : layout.orientation === Gtk.Orientation.HORIZONTAL;
+                                alignLabel(child, title);
+                            } else if (child instanceof Gtk.Scale) {
+                                child.hexpand = true;
+                                child.valign = Gtk.Align.CENTER;
+                                child.width_request = 180;
+                                child.set_value_pos(valuePosition);
+                            } else if (child instanceof Gtk.Switch) {
+                                child.halign = Gtk.Align.END;
+                                child.valign = Gtk.Align.CENTER;
+                            }
+                        }
+                    }
+                }
+                for (let child = widget.get_first_child(); child; child = child.get_next_sibling())
+                    visit(child);
+            };
+            visit(notebook.get_nth_page(page));
+        }
     }
 
     _onWindowsClosed() {
@@ -588,7 +669,7 @@ const DockSettings = GObject.registerClass({
             'value',
             Gio.SettingsBindFlags.DEFAULT);
         this._builder.get_object('dock_height_scale').set_format_value_func((_, value) =>
-            value === 0 ? __('Automatic') : `${Math.round(value)} px`);
+            `${Math.round(value)} px`);
         const dockSizeScale = this._builder.get_object('dock_size_scale');
         dockSizeScale.set_value(this._settings.get_double('height-fraction'));
         dockSizeScale.add_mark(0.9, Gtk.PositionType.TOP, null);

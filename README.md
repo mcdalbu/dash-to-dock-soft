@@ -8,7 +8,7 @@ menus de notificações/calendário e Quick Settings do GNOME Shell.
 - **Nome:** Dash to Dock Shell Soft
 - **UUID:** `dash-to-dock-shell-soft@local`
 - **Schema:** `org.gnome.shell.extensions.dash-to-dock-shell-soft`
-- **Versão deste fork:** 2
+- **Versão deste fork:** 3
 - **Repositório:** [mcdalbu/dash-to-dock-shell-soft](https://github.com/mcdalbu/dash-to-dock-shell-soft)
 
 O código, UUID e configurações são próprios. Não substitui a instalação do
@@ -53,12 +53,27 @@ fica disponível com o estilo dos menus ativado.
 ## Altura do dock
 
 Em **Preferências → Posição e tamanho**, o controle **Altura do dock (px)**
-permite ajustar o fundo em **pixels lógicos**, de **0 a 256**, sem alterar o
-tamanho dos ícones. O padrão **0 (Automático)** mantém o dimensionamento habitual.
-O valor inclui o contorno e preserva a altura mínima necessária para os ícones,
-evitando cortá-los. Os ícones ficam centralizados quando o fundo aumenta.
-Nos docks laterais, o controle ajusta a largura, mantendo o comprimento nas
-opções existentes. Todas as alterações são aplicadas ao vivo.
+move o dock verticalmente, de **−256 a +256 pixels lógicos**. Valores positivos
+sobem e valores negativos descem; **0** restaura a posição original. O deslocamento
+é limitado para manter o dock dentro do monitor. O tamanho dos ícones e a espessura
+do fundo permanecem iguais. O controle funciona também nos docks laterais.
+
+Na versão 2 esse controle alterava a espessura do fundo. A versão 3 corrige seu
+significado e aplica o valor ao posicionamento real do dock, ao blur e à geometria
+usada para ocultação e reserva de espaço. A alteração é aplicada ao vivo.
+
+## Estabilidade e organização das preferências
+
+Abrir e fechar o Quick Settings não reaplica o tema do dock quando as cores,
+o contorno, os cantos e a sombra do menu continuam iguais. Eventos de estilo são
+agrupados e comparados depois de o estilo final estar disponível. A opacidade do
+menu é independente da opacidade do dock. Isso evita reiniciar a transição de
+transparência ao abrir o menu, inclusive com Gnome Shell Soft ativo.
+
+As páginas de preferências usam margens e espaçamento consistentes, rótulos à
+esquerda, controles alinhados e colunas compartilhadas por página. Foram corrigidos
+os controles de tamanho do dock e de prévia que ocupavam a célula de seus rótulos.
+As opções novas de altura e sombra seguem o mesmo layout das outras escalas.
 
 ## Blur e transparência
 
@@ -77,7 +92,7 @@ retos, enquanto a superfície continua arredondada. A biblioteca é opcional e n
 ## Instalar
 
 ```bash
-gnome-extensions install dash-to-dock-shell-soft@local_v2.zip
+gnome-extensions install dash-to-dock-shell-soft@local_v3.zip
 ```
 
 Encerre a sessão e entre novamente para reconhecer uma extensão nova. Depois:
@@ -94,7 +109,7 @@ este fork, instale o ZIP com `gnome-extensions install --force`.
 
 ## Compilar e validar
 
-Dependências: `make`, `glib-compile-schemas`, `sassc`, `gettext` e `zip`.
+Dependências: `make`, `glib-compile-schemas`, `sassc`, `gettext`, `python3` e `zip`.
 Para lint, use ESLint 8; os testes de regressão usam Node.js.
 
 ```bash
@@ -102,7 +117,7 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=2
+make zip-file VERSION=3
 ```
 
 O teste de integração inicia um GNOME Shell 50 headless em D-Bus e diretórios de
@@ -117,9 +132,16 @@ e os cantos realmente renderizados nos temas claro/escuro, quatro posições,
 escala 2×, alteração de estilos com o menu fechado, transparência dinâmica,
 ocultação, ativação/desativação e repouso. Também testa os controles GTK novos.
 Resultados e capturas em `validation/shell-menu-*`.
-Os testes da versão 2 incluem raio nativo nos modos normal, compacto e estendido,
-altura real e largura lateral sem redimensionar os ícones, e intensidade da sombra
+Os testes incluem raio nativo nos modos normal, compacto e estendido,
+movimentação vertical sem redimensionar os ícones e intensidade da sombra
 em 0%, 50%, 100%, 150% e 200% nos dois temas, além dos vínculos dos controles GTK.
+Também medem a opacidade durante aberturas
+repetidas do Quick Settings e verificam o alinhamento das preferências em janelas reais.
+Para testar em conjunto com Gnome Shell Soft:
+
+```bash
+SOFT_TEST_WITH_SHELL_SOFT=1 /usr/bin/python3 tests/shell-menu-headless.py
+```
 
 Compatibilidade declarada **45–51**, herdada da base. A validação de integração
 usa **GNOME Shell 50.6**; as outras versões e a suspensão física precisam de

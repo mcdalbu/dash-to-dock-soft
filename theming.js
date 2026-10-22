@@ -65,7 +65,7 @@ function getShellMenuBox() {
  */
 function applyDockSurfaceStyle(dock) {
     const {settings} = Docking.DockManager;
-    if (!settings.shellMenuStyle && !settings.dockOutline && !settings.dockBlur && !settings.dockHeight)
+    if (!settings.shellMenuStyle && !settings.dockOutline && !settings.dockBlur)
         return;
 
     const background = dock.dash._background;
@@ -86,20 +86,6 @@ function applyDockSurfaceStyle(dock) {
     }
     if (settings.dockBlur)
         style += 'background-image: none;';
-    if (settings.dockHeight > 0) {
-        const position = Utils.getPosition(settings);
-        const horizontal = position === St.Side.TOP || position === St.Side.BOTTOM;
-        const sides = horizontal ? [St.Side.TOP, St.Side.BOTTOM] : [St.Side.LEFT, St.Side.RIGHT];
-        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        const node = background.get_theme_node();
-        const borderNode = menu ? menu.get_theme_node() : node;
-        // St's min-size applies to the content box. Include the border and
-        // padding in the user-facing size, while retaining the icon minimum.
-        const insets = sides.reduce((sum, side) => sum + node.get_padding(side) +
-            (!menu && settings.dockOutline ? scale : borderNode.get_border_width(side)), 0) / scale;
-        const size = Math.max(0, settings.dockHeight - insets);
-        style += `min-${horizontal ? 'height' : 'width'}: ${size}px;`;
-    }
     background.set_style(style);
 }
 
@@ -133,13 +119,14 @@ export class ThemeManager {
         this._signalsHandler.add(St.ThemeContext.get_for_stage(global.stage),
             'notify::scale-factor', () => this._updateBlur());
 
-        // Follow Gnome Shell Soft's live corner/opacity changes as well as the
-        // underlying Shell theme, without requiring either extension to be open.
+        // Opening Quick Settings emits style changes even when its surface is
+        // unchanged. Rebuilding the dock theme then would restart transparency
+        // transitions. Compare the settled menu surface before applying it.
         const menuBox = getShellMenuBox();
         if (menuBox) {
             this._signalsHandler.add(
-                [menuBox, 'style-changed', () => this._queueUpdateCustomTheme()],
-                [menuBox, 'notify::style', () => this._queueUpdateCustomTheme()]);
+                [menuBox, 'style-changed', () => this._queueUpdateShellMenuStyle()],
+                [menuBox, 'notify::style', () => this._queueUpdateShellMenuStyle()]);
         }
 
         this._signalsHandler.addWithLabel(Labels.THEME_CHANGED,
@@ -199,7 +186,37 @@ export class ThemeManager {
         });
     }
 
+    _getShellMenuSignature() {
+        const {settings} = Docking.DockManager;
+        const menu = settings.shellMenuStyle ? getShellMenuBox() : null;
+        if (!menu)
+            return null;
+        const node = menu.get_theme_node();
+        const color = node.get_background_color();
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        // Dock opacity is independent of the menu opacity. In particular,
+        // ignore Gnome Shell Soft briefly restoring its original menu fill.
+        const surface = shellMenuSurfaceStyle(node, scale,
+            settings.shellMenuKeepDockRadius, settings.dockShadowIntensity);
+        return `${color.red},${color.green},${color.blue};${surface}`;
+    }
+
+    _queueUpdateShellMenuStyle() {
+        if (this._shellMenuLater || !Docking.DockManager.settings.shellMenuStyle)
+            return;
+        this._shellMenuLater = Utils.laterAdd(Meta.LaterType.BEFORE_REDRAW, () => {
+            const signature = this._getShellMenuSignature();
+            this._shellMenuLater = 0;
+            if (signature !== this._shellMenuSignature)
+                this.updateCustomTheme();
+        });
+    }
+
     _dequeueUpdateCustomTheme() {
+        if (this._shellMenuLater) {
+            Utils.laterRemove(this._shellMenuLater);
+            this._shellMenuLater = 0;
+        }
         if (!this._updateLater)
             return;
 
@@ -733,6 +750,7 @@ export class ThemeManager {
         this._adjustTheme();
         applyDockSurfaceStyle(this._actor);
         this._updateBlur();
+        this._shellMenuSignature = this._getShellMenuSignature();
         this.emit('updated');
     }
 
@@ -796,7 +814,6 @@ export class ThemeManager {
             'shell-menu-style',
             'shell-menu-keep-dock-radius',
             'dock-shadow-intensity',
-            'dock-height',
             'customize-alphas',
             'min-alpha',
             'max-alpha',

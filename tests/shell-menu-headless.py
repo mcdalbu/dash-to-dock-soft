@@ -23,6 +23,12 @@ def stage():
         extension = base / 'data/gnome-shell/extensions' / UUID
         shutil.copytree(ROOT, extension, ignore=shutil.ignore_patterns(
             '*.zip', 'validation', 'tests', '.git', '_build', 'dash-to-dock-shell-soft@local_v*'))
+        locale = extension / 'locale/pt_BR/LC_MESSAGES'
+        locale.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / 'po/pt_BR.mo', locale / 'dashtodock.mo')
+        if os.environ.get('SOFT_TEST_WITH_SHELL_SOFT'):
+            shutil.copytree(ROOT.parent / 'gnome-shell-soft', extension.parent / 'gnome-shell-soft@local',
+                            ignore=shutil.ignore_patterns('*.zip', '.git', 'validation', 'tests', '*@local_v*'))
         if os.environ.get('SOFT_TEST_NATIVE'):
             backend = extension / 'blurBackend.js'
             backend.write_text(backend.read_text().replace('gi://Blur', 'gi://SoftTestMissingBlur'))
@@ -63,7 +69,10 @@ def test():
     from gi.repository import Gio, GLib
 
     shell_settings = Gio.Settings.new('org.gnome.shell')
-    shell_settings.set_strv('enabled-extensions', ['soft-test-helper@local', UUID])
+    enabled = ['soft-test-helper@local']
+    if os.environ.get('SOFT_TEST_WITH_SHELL_SOFT'):
+        enabled.append('gnome-shell-soft@local')
+    shell_settings.set_strv('enabled-extensions', enabled + [UUID])
     shell_settings.set_boolean('disable-user-extensions', False)
     shell_settings.set_string('welcome-dialog-last-shown-version', '999')
     Gio.Settings.new('org.gnome.desktop.notifications').set_boolean('show-banners', False)
@@ -71,6 +80,8 @@ def test():
     output = ROOT / 'validation'
     output.mkdir(exist_ok=True)
     variant = 'shell-menu-native' if os.environ.get('SOFT_TEST_NATIVE') else 'shell-menu'
+    if os.environ.get('SOFT_TEST_WITH_SHELL_SOFT'):
+        variant += '-integrated'
     log = (output / f'{variant}-session.log').open('w')
     shell = subprocess.Popen(['gnome-shell', '--headless', '--wayland', '--no-x11',
                               '--virtual-monitor=1440x1000'], stdout=log, stderr=log)
@@ -148,6 +159,23 @@ def test():
                   'JSON.stringify(surfaceValues(background)) === JSON.stringify(surfaceValues(menu.box))')
             check(f'{theme}-actual-opacity',
                   'Math.abs(background.get_theme_node().get_background_color().alpha - 140) <= 1')
+            time.sleep(0.6)
+            evaluate('globalThis.menuTrace={styles:0,updates:0,alphas:[]}; '
+                     'globalThis.styleTraceId=background.connect("notify::style",()=>menuTrace.styles++); '
+                     'globalThis.updateTraceId=dock._themeManager.connect("updated",()=>menuTrace.updates++); '
+                     'globalThis.paintTraceId=global.stage.connect("before-paint",()=> '
+                     'menuTrace.alphas.push(background.get_theme_node().get_background_color().alpha));')
+            for _ in range(3):
+                evaluate('menu.open();')
+                time.sleep(0.4)
+                evaluate('menu.close();')
+                time.sleep(0.3)
+            results[f'{theme}-quick-settings-trace'] = evaluate('menuTrace')
+            evaluate('background.disconnect(styleTraceId);dock._themeManager.disconnect(updateTraceId); '
+                     'global.stage.disconnect(paintTraceId);')
+            trace = results[f'{theme}-quick-settings-trace']
+            assert trace['styles'] == 0 and trace['updates'] == 0, 'Quick Settings reapplies the dock theme'
+            assert trace['alphas'] and all(abs(alpha-140)<=1 for alpha in trace['alphas']), 'Opacity flash'
             for intensity in [0, 50, 100, 150, 200]:
                 evaluate(f'manager.settings.set_int("dock-shadow-intensity",{intensity});')
                 time.sleep(0.2)
@@ -219,27 +247,48 @@ def test():
         check('panel-native-corners', 'surfaceValues(background).corners.every(v=>v===0)')
         evaluate('manager.settings.set_boolean("extend-height",false);')
         time.sleep(0.3)
-        results['height-measurements'] = []
-        for height in [120, 160, 80, 32, 0]:
-            evaluate(f'manager.settings.set_int("dock-height",{height});')
-            time.sleep(0.4)
-            results['height-measurements'].append(evaluate('({requested:manager.settings.dockHeight, '
-                'height:background.height, iconSize:dock.dash.iconSize, '
-                'iconHeight:dock.dash._showAppsIcon.icon.height, '
-                'iconCenter:dock.dash._showAppsIcon.icon.get_transformed_position()[1]+dock.dash._showAppsIcon.icon.height/2, '
-                'backgroundCenter:background.get_transformed_position()[1]+background.height/2})'))
-        measurements = results['height-measurements']
-        assert all(abs(m['height']-m['requested']) <= 1 for m in measurements if m['requested'] >= 80)
-        assert all(m['iconSize'] == measurements[0]['iconSize'] for m in measurements)
-        assert measurements[-2]['height'] == measurements[-1]['height']
-        assert all(abs(m['iconCenter']-m['backgroundCenter']) <= 2 for m in measurements)
-        results['height-adjusts'] = True
-        evaluate('manager.settings.set_int("dock-height",120); manager.settings.set_enum("dock-position",3);')
+        evaluate('manager.settings.set_int("dock-height",0);')
+        time.sleep(0.3)
+        baseline = evaluate('({y:background.get_transformed_position()[1],height:background.height, '
+                            'width:background.width,iconSize:dock.dash.iconSize})')
+        results['vertical-position'] = []
+        for offset in [32, 120, 256, 80, 0, -64]:
+            evaluate(f'manager.settings.set_int("dock-height",{offset});')
+            time.sleep(0.3)
+            measurement = evaluate('({requested:manager.settings.dockHeight, '
+                'y:background.get_transformed_position()[1],height:background.height, '
+                'width:background.width,iconSize:dock.dash.iconSize, '
+                'blurY:dock._themeManager._blurActor.get_transformed_position()[1], '
+                'targetY:dock._staticBox.y1, exportedY:Main.layoutManager.dashToDockStruts.monitors[dock.monitorIndex].y})')
+            results['vertical-position'].append(measurement)
+            assert abs(measurement['y']-(baseline['y']-max(0,offset)))<=1
+            assert measurement['height']==baseline['height'] and measurement['width']==baseline['width']
+            assert measurement['iconSize']==baseline['iconSize']
+            assert abs(measurement['blurY']-measurement['y'])<=1
+            assert abs(measurement['targetY']-measurement['exportedY'])<=1
+        evaluate('manager.settings.set_int("dock-height",0);themeContext.scale_factor=2;')
+        time.sleep(0.5)
+        scaled_y = evaluate('background.get_transformed_position()[1]')
+        evaluate('manager.settings.set_int("dock-height",32);')
+        time.sleep(0.3)
+        check('vertical-scale-2', f'Math.abs(background.get_transformed_position()[1]-({scaled_y}-64))<=1')
+        evaluate('themeContext.scale_factor=oldScale; manager.settings.set_int("dock-height",0); '
+                 'manager.settings.set_enum("dock-position",3);')
+        time.sleep(0.5)
+        evaluate('globalThis.dock=manager.allDocks[0];globalThis.background=dock.dash._background;')
+        side_y = evaluate('background.get_transformed_position()[1]')
+        for offset in [40,-40,0]:
+            evaluate(f'manager.settings.set_int("dock-height",{offset});')
+            time.sleep(0.3)
+            check(f'side-vertical-{offset}', f'Math.abs(background.get_transformed_position()[1]-({side_y}-({offset})))<=1')
+        evaluate('manager.settings.set_enum("dock-position",0);manager.settings.set_int("dock-height",0);')
         time.sleep(0.4)
         evaluate('globalThis.dock=manager.allDocks[0];globalThis.background=dock.dash._background;')
-        results['side-width'] = evaluate('({width:background.width, height:background.height})')
-        assert abs(results['side-width']['width']-120) <= 1
-        evaluate('manager.settings.set_int("dock-height",0); manager.settings.set_enum("dock-position",2); '
+        top_y = evaluate('background.get_transformed_position()[1]')
+        evaluate('manager.settings.set_int("dock-height",-80);')
+        time.sleep(0.3)
+        check('top-moves-down', f'Math.abs(background.get_transformed_position()[1]-({top_y}+80))<=1')
+        evaluate('manager.settings.set_int("dock-height",0);manager.settings.set_enum("dock-position",2); '
                  'manager.settings.set_boolean("shell-menu-keep-dock-radius",false);')
         time.sleep(0.4)
         evaluate('globalThis.dock=manager.allDocks[0];globalThis.background=dock.dash._background;')
@@ -261,14 +310,57 @@ def test():
         check('disable-cleanup', '!Main.uiGroup.get_children().some(a=>a.name === "dashtodockContainer")')
         evaluate('extension.enable();')
         check('reenable', 'manager.allDocks.length > 0')
-        display_env = dict(os.environ, WAYLAND_DISPLAY='wayland-0', GDK_BACKEND='wayland',
+        evaluate('backdrop.hide();')
+        display_env = dict(os.environ, WAYLAND_DISPLAY='wayland-0', GDK_BACKEND='wayland', LANGUAGE='pt_BR', LANG='pt_BR.UTF-8', LC_ALL='pt_BR.UTF-8',
                            GSETTINGS_BACKEND='memory',
                            GI_TYPELIB_PATH='/usr/lib64/gnome-shell/girepository-1.0:/usr/lib64/gnome-shell')
-        prefs = subprocess.run(['gjs', '-m', str(ROOT / 'tests/shell-menu-prefs.mjs'), str(ROOT)],
-                               env=display_env, capture_output=True, text=True, timeout=15)
-        results['preferences'] = {'passed': prefs.returncode == 0, 'output': prefs.stdout.strip()}
-        if prefs.returncode:
-            raise RuntimeError(prefs.stderr)
+        capture = Path(os.environ['XDG_RUNTIME_DIR']) / 'prefs-capture'
+        capture.mkdir()
+        display_env['SOFT_PREFS_CAPTURE_DIR'] = str(capture)
+        prefs = subprocess.Popen(['gjs', '-m', str(ROOT / 'tests/shell-menu-prefs.mjs'), str(Path(os.environ['XDG_DATA_HOME']) / 'gnome-shell/extensions' / UUID)],
+                                 env=display_env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        try:
+            for phase in ['position','appearance']:
+                (capture / 'command').write_text(phase)
+                deadline = time.monotonic()+12
+                while True:
+                    if prefs.poll() is not None:
+                        raise RuntimeError(prefs.communicate()[1])
+                    try:
+                        layout = json.loads((capture / 'ready').read_text())
+                        if layout['phase'] == phase:
+                            break
+                    except (FileNotFoundError,json.JSONDecodeError):
+                        pass
+                    if time.monotonic()>deadline:
+                        raise RuntimeError('Preferences capture timed out')
+                    time.sleep(0.1)
+                results[f'preferences-{phase}-layout'] = layout['bounds']
+                if phase == 'position':
+                    label_ids=['dock_size_label','dock_height_label','builtin_theme_label6','builtin_theme_label7']
+                    scale_ids=['dock_size_scale','dock_height_scale','icon_size_scale','preview_size_scale']
+                    labels=[layout['bounds'][name] for name in label_ids]
+                    scales=[layout['bounds'][name] for name in scale_ids]
+                    assert max(b['x'] for b in labels)-min(b['x'] for b in labels)<=1, 'Label alignment'
+                    assert max(b['x'] for b in scales)-min(b['x'] for b in scales)<=1, 'Slider alignment'
+                    assert all(l['x']+l['width']<=c['x'] for l,c in zip(labels,scales)), 'Label/control overlap'
+                else:
+                    scales=list(layout['bounds'].values())
+                    assert max(b['x'] for b in scales)-min(b['x'] for b in scales)<=1, 'Appearance slider alignment'
+                    assert max(b['width'] for b in scales)-min(b['width'] for b in scales)<=1, 'Appearance slider widths'
+                screenshot = json.dumps(str(output / f'{variant}-preferences-{phase}.png'))
+                evaluate(f'(async()=>{{const stream=Gio.File.new_for_path({screenshot}).replace(null,false, '
+                         'Gio.FileCreateFlags.REPLACE_DESTINATION,null);await new Shell.Screenshot().screenshot(false,stream);'
+                         'stream.close(null);return true;})()')
+            (capture / 'command').write_text('done')
+            stdout,stderr=prefs.communicate(timeout=10)
+            results['preferences'] = {'passed':prefs.returncode==0,'output':stdout.strip()}
+            if prefs.returncode:
+                raise RuntimeError(stderr)
+        finally:
+            if prefs.poll() is None:
+                prefs.terminate()
+                prefs.wait(timeout=5)
         results['passed'] = True
         print(json.dumps(results, indent=2))
     finally:

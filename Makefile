@@ -156,4 +156,5 @@ ifneq ($(strip $(ESLINT_TAP)),)
 endif
 
 check:
+	python3 tests/preferences-layout.py
 	ESLINT_USE_FLAT_CONFIG=false $(ESLINT) $(ESLINT_ARGS) .

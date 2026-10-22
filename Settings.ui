@@ -750,6 +750,7 @@
                                 <property name="digits">2</property>
                                 <property name="value_pos">right</property>
                                 <signal name="value-changed" handler="dock_size_scale_value_changed_cb" />
+                              <layout><property name="column">1</property><property name="row">0</property></layout>
                               </object>
                             </child>
                             <child>
@@ -782,41 +783,42 @@
                       <object class="GtkListBoxRow" id="dock_height_listboxrow">
                         <property name="activatable">0</property>
                         <property name="child">
-                          <object class="GtkBox">
-                            <property name="orientation">vertical</property>
+                          <object class="GtkGrid" id="dock_height_grid">
                             <property name="margin_start">12</property>
                             <property name="margin_end">12</property>
                             <property name="margin_top">12</property>
                             <property name="margin_bottom">12</property>
-                            <property name="spacing">6</property>
+                            <property name="column_spacing">24</property>
+                            <property name="row_spacing">6</property>
                             <child>
-                              <object class="GtkLabel">
+                              <object class="GtkLabel" id="dock_height_label">
                                 <property name="label" translatable="yes">Dock height (px)</property>
                                 <property name="xalign">0</property>
+                                <layout><property name="column">0</property><property name="row">0</property></layout>
                               </object>
                             </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="label" translatable="yes">0: automatic. Keeps enough space for icons. On side docks, adjusts the width.</property>
-                                <property name="xalign">0</property>
-                                <property name="wrap">1</property>
-                                <style><class name="dim-label"/></style>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkScale" id="dock_height_scale">
+                            <child><object class="GtkScale" id="dock_height_scale">
                                 <property name="draw_value">1</property>
                                 <property name="digits">0</property>
                                 <property name="hexpand">1</property>
                                 <property name="adjustment">
                                   <object class="GtkAdjustment" id="dock_height_adjustment">
-                                    <property name="lower">0</property>
+                                    <property name="lower">-256</property>
                                     <property name="upper">256</property>
                                     <property name="step_increment">1</property>
                                     <property name="page_increment">8</property>
                                     <property name="value">0</property>
                                   </object>
                                 </property>
+                              <layout><property name="column">1</property><property name="row">0</property></layout>
+                              </object></child>
+                            <child>
+                              <object class="GtkLabel" id="dock_height_hint">
+                                <property name="label" translatable="yes">0: original position. Positive values move up; negative values move down. Keeps the dock inside the monitor.</property>
+                                <property name="xalign">0</property>
+                                <property name="wrap">1</property>
+                                <style><class name="dim-label"/></style>
+                                <layout><property name="column">0</property><property name="row">1</property><property name="column-span">2</property></layout>
                               </object>
                             </child>
                           </object>
@@ -910,12 +912,9 @@
                                 <property name="value_pos">right</property>
                                 <!-- <signal name="format-value" handler="preview_size_scale_format_value_cb" /> -->
                                 <signal name="value-changed" handler="preview_size_scale_value_changed_cb" />
+                              <layout><property name="column">1</property><property name="row">0</property></layout>
                               </object>
                             </child>
-                            <layout>
-                              <property name="column">0</property>
-                              <property name="row">1</property>
-                            </layout>
                           </object>
                         </child>
                       </object>
@@ -2121,29 +2120,21 @@
                       <object class="GtkListBoxRow">
                         <property name="activatable">0</property>
                         <property name="child">
-                          <object class="GtkBox">
-                            <property name="orientation">vertical</property>
-                            <property name="margin_start">24</property>
+                          <object class="GtkGrid" id="dock_shadow_intensity_grid">
+                            <property name="margin_start">12</property>
                             <property name="margin_end">12</property>
                             <property name="margin_top">12</property>
                             <property name="margin_bottom">12</property>
-                            <property name="spacing">6</property>
+                            <property name="column_spacing">24</property>
+                            <property name="row_spacing">6</property>
                             <child>
-                              <object class="GtkLabel">
+                              <object class="GtkLabel" id="dock_shadow_intensity_label">
                                 <property name="label" translatable="yes">Outer shadow intensity (%)</property>
                                 <property name="xalign">0</property>
+                                <layout><property name="column">0</property><property name="row">0</property></layout>
                               </object>
                             </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="label" translatable="yes">100% matches Quick Settings. 0% removes the shadow; 200% doubles its intensity.</property>
-                                <property name="xalign">0</property>
-                                <property name="wrap">1</property>
-                                <style><class name="dim-label"/></style>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkScale" id="dock_shadow_intensity_scale">
+                            <child><object class="GtkScale" id="dock_shadow_intensity_scale">
                                 <property name="draw_value">1</property>
                                 <property name="digits">0</property>
                                 <property name="hexpand">1</property>
@@ -2156,6 +2147,15 @@
                                     <property name="value">100</property>
                                   </object>
                                 </property>
+                              <layout><property name="column">1</property><property name="row">0</property></layout>
+                              </object></child>
+                            <child>
+                              <object class="GtkLabel" id="dock_shadow_intensity_hint">
+                                <property name="label" translatable="yes">100% matches Quick Settings. 0% removes the shadow; 200% doubles its intensity.</property>
+                                <property name="xalign">0</property>
+                                <property name="wrap">1</property>
+                                <style><class name="dim-label"/></style>
+                                <layout><property name="column">0</property><property name="row">1</property><property name="column-span">2</property></layout>
                               </object>
                             </child>
                           </object>

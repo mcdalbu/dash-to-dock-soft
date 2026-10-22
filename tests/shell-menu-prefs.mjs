@@ -50,13 +50,13 @@ settings.set_int('dock-shadow-intensity', 0);
 assert(shadow.get_value() === 0, 'Shadow setting updates slider');
 settings.reset('dock-shadow-intensity');
 assert(shadow.get_value() === 100, 'Shadow default restores Quick Settings');
-assert(height.get_value() === 0 && height.get_adjustment().upper === 256,
+assert(height.get_value() === 0 && height.get_adjustment().upper === 256 && height.get_adjustment().lower === -256,
     'Height defaults and range');
 assert(height.is_ancestor(controls.get('position_and_size')), 'Height control is in Position and size');
 height.set_value(120);
 assert(settings.get_int('dock-height') === 120, 'Height slider writes setting');
-settings.set_int('dock-height', 144);
-assert(height.get_value() === 144, 'Height setting updates slider');
+settings.set_int('dock-height', -144);
+assert(height.get_value() === -144, 'Height setting updates slider');
 keepRadius.active = true;
 assert(settings.get_boolean('shell-menu-keep-dock-radius'), 'Keep-radius switch binding');
 assert(profile.active && !outline.sensitive && !corners.sensitive, 'Profile defaults and sensitivity');
@@ -70,6 +70,58 @@ assert(intensity.sensitive, 'Manual outline intensity enabled');
 settings.set_boolean('shell-menu-style', true);
 assert(profile.active && !outline.sensitive && !intensity.sensitive && !corners.sensitive,
     'Settings update the switch and disable overridden controls');
-window.destroy();
 assert(keepRadius.sensitive && shadow.sensitive, 'Dependent controls reenabled');
+const captureDir = GLib.getenv('SOFT_PREFS_CAPTURE_DIR');
+if (captureDir) {
+    settings.reset('dock-height');
+    settings.reset('shell-menu-keep-dock-radius');
+    settings.reset('dock-outline');
+    const notebook = controls.get('settings_notebook');
+    const loop = GLib.MainLoop.new(null, false);
+    window.title = 'Dash to Dock Shell Soft';
+    window.set_default_size(860, 850);
+    window.present();
+    let current = '';
+    const watcher = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 100, () => {
+        const command = `${captureDir}/command`;
+        if (!Gio.File.new_for_path(command).query_exists(null))
+            return GLib.SOURCE_CONTINUE;
+        const [, bytes] = GLib.file_get_contents(command);
+        const phase = new TextDecoder().decode(bytes);
+        if (phase === 'done') {
+            loop.quit();
+            return GLib.SOURCE_REMOVE;
+        }
+        if (phase === current)
+            return GLib.SOURCE_CONTINUE;
+        current = phase;
+        notebook.set_current_page(phase === 'position' ? 0 : 3);
+        if (phase === 'appearance')
+            shadow.grab_focus();
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 650, () => {
+            const ids = phase === 'position'
+                ? ['dock_size_label', 'dock_height_label', 'builtin_theme_label6', 'builtin_theme_label7',
+                    'dock_size_scale', 'dock_height_scale', 'icon_size_scale', 'preview_size_scale']
+                : ['dock_shadow_intensity_scale', 'dock_outline_intensity_scale',
+                    'icon_shadow_intensity_scale', 'dock_blur_radius_scale'];
+            const bounds = {};
+            for (const id of ids) {
+                const [ok, rect] = controls.get(id).compute_bounds(window);
+                assert(ok, `Allocated control: ${id}`);
+                bounds[id] = {x:rect.get_x(), y:rect.get_y(), width:rect.get_width(), height:rect.get_height()};
+            }
+            GLib.file_set_contents(`${captureDir}/ready`, JSON.stringify({phase, bounds}));
+            return GLib.SOURCE_REMOVE;
+        });
+        return GLib.SOURCE_CONTINUE;
+    });
+    const timeout = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 20, () => {
+        GLib.source_remove(watcher);
+        loop.quit();
+        return GLib.SOURCE_REMOVE;
+    });
+    loop.run();
+    GLib.source_remove(timeout);
+}
+window.destroy();
 print('Preferences: height, native radius, shadow intensity, defaults and dependent controls passed');
