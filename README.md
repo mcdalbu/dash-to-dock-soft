@@ -8,7 +8,7 @@ menus de notificações/calendário e Quick Settings do GNOME Shell.
 - **Nome:** Dash to Dock Soft
 - **UUID:** `dash-to-dock-soft@local`
 - **Schema:** `org.gnome.shell.extensions.dash-to-dock-soft`
-- **Versão deste fork:** 16
+- **Versão deste fork:** 17
 - **Repositório:** [mcdalbu/dash-to-dock-soft](https://github.com/mcdalbu/dash-to-dock-soft)
 
 Esta versão atualiza o Dash to Dock Soft principal e mantém seu UUID, schema
@@ -31,8 +31,11 @@ do relógio como alternativa), incluindo:
 Acompanha mudanças entre tema claro e escuro e estilos aplicados ao menu por
 **Gnome Shell Soft**. Não aplica transparência aos ícones nem os desfoca.
 O dock flutuante deixa 12 pixels lógicos até a borda da tela para a sombra.
-Quando está totalmente visível, seu recorte permite a pintura externa; durante
-ocultação e animações de deslizamento, o recorte continua protegendo a área oculta.
+Na versão 17, a sombra externa acompanha o dock durante toda a animação de
+entrada e saída, em vez de aparecer somente ao atingir a posição final.
+O recorte de pintura acompanha a borda do monitor, preservando a sombra fora
+da superfície sem ampliar a área de entrada do dock. No estado totalmente
+oculto, o recorte elimina também a sombra, inclusive em temas com sombras grandes.
 O modo estendido mantém seu posicionamento junto à borda da tela.
 
 Os controles manuais de contorno e raio ficam desabilitados enquanto o estilo
@@ -94,7 +97,7 @@ retos, enquanto a superfície continua arredondada. A biblioteca é opcional e n
 ## Instalar
 
 ```bash
-gnome-extensions install --force dash-to-dock-soft@local_v16.zip
+gnome-extensions install --force dash-to-dock-soft@local_v17.zip
 ```
 
 Encerre a sessão e entre novamente para carregar a atualização. Depois:
@@ -119,7 +122,7 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=16
+make zip-file VERSION=17
 ```
 
 O teste de integração inicia um GNOME Shell 50 headless em D-Bus e diretórios de
@@ -129,7 +132,7 @@ dados/configurações privados, sem instalar o fork na sessão de trabalho:
 /usr/bin/python3 tests/shell-menu-headless.py
 ```
 
-Requer GNOME Shell 50, PyGObject e GJS/GTK/Adwaita. Compara o contorno, a sombra
+Requer GNOME Shell 50, PyGObject, GdkPixbuf e GJS/GTK/Adwaita. Compara o contorno, a sombra
 e os cantos realmente renderizados nos temas claro/escuro, quatro posições,
 escala 2×, alteração de estilos com o menu fechado, transparência dinâmica,
 ocultação, ativação/desativação e repouso. Também testa os controles GTK novos.
@@ -139,6 +142,9 @@ movimentação vertical sem redimensionar os ícones e intensidade da sombra
 em 0%, 50%, 100%, 150% e 200% nos dois temas, além dos vínculos dos controles GTK.
 Também medem a opacidade durante aberturas
 repetidas do Quick Settings e verificam o alinhamento das preferências em janelas reais.
+A versão 17 acrescenta comparação de pixels da sombra fora do dock a meio caminho
+da animação nos quatro lados, ausência de sombra ao ocultar e acompanhamento
+do recorte em cada frame de uma animação real de autohide.
 Para testar em conjunto com Gnome Shell Soft:
 
 ```bash

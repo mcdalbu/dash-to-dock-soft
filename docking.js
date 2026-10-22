@@ -183,16 +183,29 @@ const DashSlideContainer = GObject.registerClass({
 
         this.child.allocate(childBox);
 
-        if (DockManager.settings.shellMenuStyle && this.slideX === 1) {
-            // A menu-style shadow extends beyond allocation. Keep the input
-            // region in the slider, but allow its fully shown child to paint it.
-            this.child.remove_clip();
-        } else {
-            // Preserve the slide viewport during autohide, including its final
-            // hidden frame: neither icons nor shadow may remain on screen.
-            this.child.set_clip(-childBox.x1, -childBox.y1,
-                -childBox.x1 + availWidth, -childBox.y1 + availHeight);
+        if (DockManager.settings.shellMenuStyle) {
+            if (this.slideX === 0) {
+                // No shadow may spill from a completely hidden dock.
+                this.child.set_clip(0, 0, 0, 0);
+                return;
+            }
+            // The sliding allocation tracks input, not the shadow's paint
+            // bounds. Clip painting at the monitor edge throughout the motion
+            // so the shadow can travel with the dock without a final pop-in.
+            const monitor = Main.layoutManager.monitors[this.monitorIndex];
+            const [validStart, left, top] = this.child.transform_stage_point(monitor.x, monitor.y);
+            const [validEnd, right, bottom] = this.child.transform_stage_point(
+                monitor.x + monitor.width, monitor.y + monitor.height);
+            if (validStart && validEnd) {
+                this.child.set_clip(left, top, right - left, bottom - top);
+                return;
+            }
         }
+
+        // Retain the upstream viewport when the menu style is disabled or its
+        // monitor transform is not available yet during initial allocation.
+        this.child.set_clip(-childBox.x1, -childBox.y1,
+            -childBox.x1 + availWidth, -childBox.y1 + availHeight);
     }
 
     /**

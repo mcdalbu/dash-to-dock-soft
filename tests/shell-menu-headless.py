@@ -66,7 +66,8 @@ export default class Helper extends Extension {
 def test():
     import gi
     gi.require_version('Gio', '2.0')
-    from gi.repository import Gio, GLib
+    gi.require_version('GdkPixbuf', '2.0')
+    from gi.repository import Gio, GLib, GdkPixbuf
 
     shell_settings = Gio.Settings.new('org.gnome.shell')
     enabled = ['soft-test-helper@local']
@@ -103,6 +104,35 @@ def test():
         results[name] = value
         if not value:
             raise AssertionError(name)
+
+    def screenshot(path):
+        evaluate('globalThis.captureDone=false; '
+                 f'(async()=>{{const stream=Gio.File.new_for_path({json.dumps(str(path))}).replace(null,false, '
+                 'Gio.FileCreateFlags.REPLACE_DESTINATION,null);await new Shell.Screenshot().screenshot(false,stream);'
+                 'stream.close(null);globalThis.captureDone=true;})()')
+        deadline = time.monotonic() + 5
+        while not evaluate('captureDone'):
+            if time.monotonic() > deadline:
+                raise RuntimeError('Shadow screenshot timed out')
+            time.sleep(0.03)
+
+    def exterior_difference(on, off, box):
+        images = [GdkPixbuf.Pixbuf.new_from_file(str(path)) for path in [on, off]]
+        a, b = images
+        assert a.get_width() == b.get_width() and a.get_height() == b.get_height()
+        assert a.get_n_channels() == b.get_n_channels()
+        pixels = [image.get_pixels() for image in images]
+        left, top, width, height = box
+        count, maximum = 0, 0
+        for y in range(max(32, int(top)-24), min(a.get_height(), int(top+height)+24)):
+            for x in range(max(0, int(left)-24), min(a.get_width(), int(left+width)+24)):
+                if left <= x < left+width and top <= y < top+height:
+                    continue
+                indices = [y*image.get_rowstride()+x*image.get_n_channels() for image in images]
+                difference = max(abs(pixels[0][indices[0]+c]-pixels[1][indices[1]+c]) for c in range(3))
+                maximum = max(maximum, difference)
+                count += difference >= 3
+        return {'pixels': count, 'maximum': maximum}
 
     try:
         for _ in range(100):
@@ -307,13 +337,63 @@ def test():
                  'manager.settings.set_boolean("shell-menu-keep-dock-radius",false);')
         time.sleep(0.4)
         evaluate('globalThis.dock=manager.allDocks[0];globalThis.background=dock.dash._background;')
-        check('full-shadow-unclipped', 'dock._slider.slideX === 1 && !dock._box.has_clip')
-        evaluate('dock._slider.slideX=0.4;')
+        # Compare real pixels outside the sliding actor, where the shadow must
+        # paint before the dock reaches its final position. A stronger themed
+        # shadow makes clipping observable on both dark and light backgrounds.
+        evaluate('menu.box.set_style("box-shadow: 0 3px 12px 4px rgba(0,0,0,0.6);");')
         time.sleep(0.3)
-        check('autohide-viewport', 'dock._box.has_clip')
-        evaluate('dock._slider.slideX=1;')
-        time.sleep(0.3)
-        check('shadow-after-show', '!dock._box.has_clip')
+        for side, name in [(2,'bottom'),(0,'top'),(3,'left'),(1,'right')]:
+            evaluate(f'manager.settings.set_enum("dock-position",{side});')
+            time.sleep(0.4)
+            evaluate('globalThis.dock=manager.allDocks[0];globalThis.background=dock.dash._background; '
+                     'dock._slider.slideX=0.5;manager.settings.set_int("dock-shadow-intensity",100);')
+            time.sleep(0.3)
+            box = evaluate('[...dock._box.get_transformed_position(),...dock._box.get_transformed_size()]')
+            on = output / f'{variant}-sliding-shadow-{name}.png'
+            off = Path(os.environ['XDG_RUNTIME_DIR']) / 'shadow-off.png'
+            screenshot(on)
+            evaluate('manager.settings.set_int("dock-shadow-intensity",0);')
+            time.sleep(0.3)
+            screenshot(off)
+            difference = exterior_difference(on, off, box)
+            results[f'sliding-shadow-{name}'] = difference
+            assert difference['pixels'] > 10, f'No outer shadow while sliding: {name}: {difference}'
+            evaluate('dock._slider.slideX=0;manager.settings.set_int("dock-shadow-intensity",100);')
+            time.sleep(0.3)
+            check(f'{name}-fully-hidden', 'dock._box.has_clip && '
+                  'dock._box.get_clip().slice(2).some(size=>size===0)')
+        evaluate('menu.box.set_style(originalMenuStyle);manager.settings.set_int("dock-shadow-intensity",100); '
+                 'manager.settings.set_enum("dock-position",2);manager.settings.set_boolean("autohide",true); '
+                 'manager.settings.set_boolean("dock-fixed",false);')
+        time.sleep(0.6)
+        # Hold unrelated visibility requests while exercising both animation
+        # directions from a known hidden state with autohide enabled.
+        evaluate('globalThis.dock=manager.allDocks[0];globalThis.background=dock.dash._background; '
+                 'dock._menuOpened=true;dock._ignoreHover=true;dock._updateVisibilityMode(); '
+                 'dock._removeAnimations();dock._animateIn(0,0);dock._animateOut(0,0);')
+        time.sleep(0.1)
+        results['autohide-start-state'] = evaluate('({enabled:dock.autohideEnabled, '
+            'fixed:manager.settings.dockFixed,state:dock.dockState,slide:dock._slider.slideX})')
+        check('autohide-starts-hidden', 'dock.autohideEnabled && dock._slider.slideX===0')
+        evaluate('globalThis.slideFrames=[]; '
+                 'globalThis.slideFrameId=global.stage.connect("after-paint",()=> '
+                 'slideFrames.push({slide:dock._slider.slideX,clip:dock._box.get_clip(), '
+                 'size:[dock._box.width,dock._box.height], '
+                 'background:[...background.get_transformed_position(),...background.get_transformed_size()]})); '
+                 'dock._animateIn(0.4,0);')
+        time.sleep(0.6)
+        evaluate('dock._animateOut(0.4,0);')
+        time.sleep(0.6)
+        results['autohide-shadow-frames'] = evaluate('slideFrames')
+        evaluate('global.stage.disconnect(slideFrameId);')
+        moving = [f for f in results['autohide-shadow-frames'] if 0 < f['slide'] < 1]
+        assert len(moving) > 3, 'Autohide did not animate'
+        fractions = [f['slide'] for f in results['autohide-shadow-frames']]
+        assert any(b > a for a,b in zip(fractions,fractions[1:])), 'No slide-in animation'
+        assert any(b < a for a,b in zip(fractions,fractions[1:])), 'No slide-out animation'
+        assert all(f['clip'][2] > f['size'][0] and f['clip'][3] > f['size'][1] for f in moving)
+        evaluate('delete dock._menuOpened;manager.settings.set_boolean("dock-fixed",true);')
+        time.sleep(0.6)
         time.sleep(1)
         evaluate('globalThis.frames=0; globalThis.frameId=global.stage.connect("after-paint",()=>frames++);')
         time.sleep(1.5)
