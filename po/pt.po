@@ -604,8 +604,8 @@ msgstr "Intensidade da sombra externa (%)"
 msgid "100% matches Quick Settings. 0% removes the shadow; 200% doubles its intensity."
 msgstr "100% usa a sombra do Quick Settings. 0% remove a sombra; 200% duplica sua intensidade."
 
-msgid "0: original position. Positive values move up; negative values move down. Keeps the dock inside the monitor."
-msgstr "0: posição original. Valores positivos sobem; negativos descem. O dock permanece dentro do monitor."
+msgid "0: original position. Positive values move up; negative values move down, including beyond the screen edge."
+msgstr "0: posição original. Valores positivos sobem; negativos descem, inclusive para fora da tela."
 
 msgid "Shell menu appearance"
 msgstr "Visual dos menus do Shell"

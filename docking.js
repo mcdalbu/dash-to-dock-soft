@@ -1358,30 +1358,16 @@ const DockedDash = GObject.registerClass({
                 this.remove_style_class_name('extended');
             }
         }
-        this._applyVerticalPosition(fixedIsEnabled);
+        this._applyVerticalPosition();
     }
 
-    _applyVerticalPosition(fixedIsEnabled) {
-        // "Height" is a vertical position adjustment, independent of the
-        // surface thickness and icon size. Use monitor bounds to avoid a
-        // workarea/strut feedback loop when the fixed dock changes position.
+    _applyVerticalPosition() {
+        // Apply to the base position recalculated above, allowing the dock to
+        // move beyond the monitor without accumulating offsets on relayout.
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         const offset = DockManager.settings.dockHeight * scale;
-        this._verticalOffset = 0;
-        if (offset !== 0) {
-            const originalY = this.y;
-            const boxHeight = this._box.height;
-            let inset = this._isHorizontal ? 0 : Math.max(0, (this.height - boxHeight) / 2);
-            if (this._position === St.Side.BOTTOM)
-                inset = -boxHeight;
-            else if (this._position === St.Side.TOP && fixedIsEnabled &&
-                Main.panel.x === this._monitor.x && Main.panel.y === this._monitor.y)
-                inset = Main.panel.height;
-            const minimumY = this._monitor.y - inset;
-            const maximumY = this._monitor.y + this._monitor.height - inset - boxHeight;
-            this.y = Math.max(minimumY, Math.min(maximumY, this.y - offset));
-            this._verticalOffset = originalY - this.y;
-        }
+        this.y -= offset;
+        this._verticalOffset = offset;
     }
 
     _updateVisibleDesktop() {
@@ -1390,14 +1376,17 @@ const DockedDash = GObject.registerClass({
 
         const {desktopIconsUsableArea} = DockManager.getDefault();
         const verticalOffset = this._verticalOffset ?? 0;
-        if (this._position === St.Side.BOTTOM)
-            desktopIconsUsableArea.setMargins(this.monitorIndex, 0, this._box.height + verticalOffset, 0, 0);
-        else if (this._position === St.Side.TOP)
-            desktopIconsUsableArea.setMargins(this.monitorIndex, this._box.height - verticalOffset, 0, 0, 0);
-        else if (this._position === St.Side.RIGHT)
+        if (this._position === St.Side.BOTTOM) {
+            desktopIconsUsableArea.setMargins(this.monitorIndex, 0,
+                Math.max(0, this._box.height + verticalOffset), 0, 0);
+        } else if (this._position === St.Side.TOP) {
+            desktopIconsUsableArea.setMargins(this.monitorIndex,
+                Math.max(0, this._box.height - verticalOffset), 0, 0, 0);
+        } else if (this._position === St.Side.RIGHT) {
             desktopIconsUsableArea.setMargins(this.monitorIndex, 0, 0, 0, this._box.width);
-        else if (this._position === St.Side.LEFT)
+        } else if (this._position === St.Side.LEFT) {
             desktopIconsUsableArea.setMargins(this.monitorIndex, 0, 0, this._box.width, 0);
+        }
     }
 
     _updateStaticBox() {

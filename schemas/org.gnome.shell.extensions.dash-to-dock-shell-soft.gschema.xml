@@ -71,7 +71,7 @@
       <default>0</default>
       <range min="-256" max="256"/>
       <summary>Dock vertical position offset in logical pixels</summary>
-      <description>Positive values move the dock up, negative values move it down. Zero keeps its original position. The dock remains inside its monitor; its thickness and icon size are unchanged.</description>
+      <description>Positive values move the dock up, negative values move it down. Zero keeps its original position. The dock can move beyond its monitor edges; its thickness and icon size are unchanged.</description>
     </key>
     <key type="b" name="icon-shadow">
       <default>false</default>

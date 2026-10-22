@@ -814,7 +814,7 @@
                               </object></child>
                             <child>
                               <object class="GtkLabel" id="dock_height_hint">
-                                <property name="label" translatable="yes">0: original position. Positive values move up; negative values move down. Keeps the dock inside the monitor.</property>
+                                <property name="label" translatable="yes">0: original position. Positive values move up; negative values move down, including beyond the screen edge.</property>
                                 <property name="xalign">0</property>
                                 <property name="wrap">1</property>
                                 <style><class name="dim-label"/></style>

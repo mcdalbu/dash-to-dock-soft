@@ -8,7 +8,7 @@ menus de notificações/calendário e Quick Settings do GNOME Shell.
 - **Nome:** Dash to Dock Shell Soft
 - **UUID:** `dash-to-dock-shell-soft@local`
 - **Schema:** `org.gnome.shell.extensions.dash-to-dock-shell-soft`
-- **Versão deste fork:** 3
+- **Versão deste fork:** 4
 - **Repositório:** [mcdalbu/dash-to-dock-shell-soft](https://github.com/mcdalbu/dash-to-dock-shell-soft)
 
 O código, UUID e configurações são próprios. Não substitui a instalação do
@@ -55,12 +55,14 @@ fica disponível com o estilo dos menus ativado.
 Em **Preferências → Posição e tamanho**, o controle **Altura do dock (px)**
 move o dock verticalmente, de **−256 a +256 pixels lógicos**. Valores positivos
 sobem e valores negativos descem; **0** restaura a posição original. O deslocamento
-é limitado para manter o dock dentro do monitor. O tamanho dos ícones e a espessura
+pode ultrapassar as bordas do monitor. O tamanho dos ícones e a espessura
 do fundo permanecem iguais. O controle funciona também nos docks laterais.
 
 Na versão 2 esse controle alterava a espessura do fundo. A versão 3 corrige seu
 significado e aplica o valor ao posicionamento real do dock, ao blur e à geometria
-usada para ocultação e reserva de espaço. A alteração é aplicada ao vivo.
+usada para ocultação e reserva de espaço. A versão 4 remove o limite da tela,
+permitindo que valores negativos levem o dock parcial ou totalmente para fora
+da borda inferior. A alteração é aplicada ao vivo; voltar a 0 restaura a posição.
 
 ## Estabilidade e organização das preferências
 
@@ -92,7 +94,7 @@ retos, enquanto a superfície continua arredondada. A biblioteca é opcional e n
 ## Instalar
 
 ```bash
-gnome-extensions install dash-to-dock-shell-soft@local_v3.zip
+gnome-extensions install dash-to-dock-shell-soft@local_v4.zip
 ```
 
 Encerre a sessão e entre novamente para reconhecer uma extensão nova. Depois:
@@ -117,7 +119,7 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=3
+make zip-file VERSION=4
 ```
 
 O teste de integração inicia um GNOME Shell 50 headless em D-Bus e diretórios de

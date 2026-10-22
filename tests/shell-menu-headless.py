@@ -252,7 +252,7 @@ def test():
         baseline = evaluate('({y:background.get_transformed_position()[1],height:background.height, '
                             'width:background.width,iconSize:dock.dash.iconSize})')
         results['vertical-position'] = []
-        for offset in [32, 120, 256, 80, 0, -64]:
+        for offset in [32, 120, 256, 80, 0, -8, -32, -64, -120, -256, 0]:
             evaluate(f'manager.settings.set_int("dock-height",{offset});')
             time.sleep(0.3)
             measurement = evaluate('({requested:manager.settings.dockHeight, '
@@ -261,17 +261,29 @@ def test():
                 'blurY:dock._themeManager._blurActor.get_transformed_position()[1], '
                 'targetY:dock._staticBox.y1, exportedY:Main.layoutManager.dashToDockStruts.monitors[dock.monitorIndex].y})')
             results['vertical-position'].append(measurement)
-            assert abs(measurement['y']-(baseline['y']-max(0,offset)))<=1
+            assert abs(measurement['y']-(baseline['y']-offset))<=1
             assert measurement['height']==baseline['height'] and measurement['width']==baseline['width']
             assert measurement['iconSize']==baseline['iconSize']
             assert abs(measurement['blurY']-measurement['y'])<=1
             assert abs(measurement['targetY']-measurement['exportedY'])<=1
+        monitor_bottom = evaluate('dock._monitor.y+dock._monitor.height')
+        assert any(m['requested'] < 0 and m['y'] >= monitor_bottom
+                   for m in results['vertical-position'])
+        evaluate('manager.settings.set_int("dock-height",-120);')
+        time.sleep(0.3)
+        for _ in range(3):
+            evaluate('dock._resetPosition();dock._updateStaticBox();')
+            time.sleep(0.1)
+            check('offscreen-position-stable', f'Math.abs(background.get_transformed_position()[1]-({baseline["y"]}+120))<=1')
         evaluate('manager.settings.set_int("dock-height",0);themeContext.scale_factor=2;')
         time.sleep(0.5)
         scaled_y = evaluate('background.get_transformed_position()[1]')
         evaluate('manager.settings.set_int("dock-height",32);')
         time.sleep(0.3)
         check('vertical-scale-2', f'Math.abs(background.get_transformed_position()[1]-({scaled_y}-64))<=1')
+        evaluate('manager.settings.set_int("dock-height",-32);')
+        time.sleep(0.3)
+        check('negative-vertical-scale-2', f'Math.abs(background.get_transformed_position()[1]-({scaled_y}+64))<=1')
         evaluate('themeContext.scale_factor=oldScale; manager.settings.set_int("dock-height",0); '
                  'manager.settings.set_enum("dock-position",3);')
         time.sleep(0.5)
@@ -288,6 +300,9 @@ def test():
         evaluate('manager.settings.set_int("dock-height",-80);')
         time.sleep(0.3)
         check('top-moves-down', f'Math.abs(background.get_transformed_position()[1]-({top_y}+80))<=1')
+        evaluate('manager.settings.set_int("dock-height",80);')
+        time.sleep(0.3)
+        check('top-moves-offscreen', f'Math.abs(background.get_transformed_position()[1]-({top_y}-80))<=1')
         evaluate('manager.settings.set_int("dock-height",0);manager.settings.set_enum("dock-position",2); '
                  'manager.settings.set_boolean("shell-menu-keep-dock-radius",false);')
         time.sleep(0.4)
