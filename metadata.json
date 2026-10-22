@@ -10,11 +10,11 @@
     ],
     "uuid": "dash-to-dock-soft@local",
     "name": "Dash to Dock Soft",
-    "description": "An independent fork of Dash to Dock maintained by mcdalbu, with optional adjustable icon shadows, an Adwaita-inspired dock outline and native dynamic background blur. Based on Dash to Dock by Michele G. and contributors.",
+    "description": "An independent fork of Dash to Dock maintained by mcdalbu, with GNOME Shell menu borders, rounded corners and adjustable outer shadows, vertical positioning and native dynamic background blur. Based on Dash to Dock by Michele G. and contributors.",
     "original-author": "micxgx@gmail.com",
     "url": "https://github.com/mcdalbu/dash-to-dock-soft",
     "gettext-domain": "dashtodock",
-    "version": 15,
+    "version": 16,
     "settings-schema": "org.gnome.shell.extensions.dash-to-dock-soft",
     "upstream-url": "https://github.com/micheleg/dash-to-dock",
     "fork-maintainer": "mcdalbu"

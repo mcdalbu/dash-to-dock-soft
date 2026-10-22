@@ -183,8 +183,16 @@ const DashSlideContainer = GObject.registerClass({
 
         this.child.allocate(childBox);
 
-        this.child.set_clip(-childBox.x1, -childBox.y1,
-            -childBox.x1 + availWidth, -childBox.y1 + availHeight);
+        if (DockManager.settings.shellMenuStyle && this.slideX === 1) {
+            // A menu-style shadow extends beyond allocation. Keep the input
+            // region in the slider, but allow its fully shown child to paint it.
+            this.child.remove_clip();
+        } else {
+            // Preserve the slide viewport during autohide, including its final
+            // hidden frame: neither icons nor shadow may remain on screen.
+            this.child.set_clip(-childBox.x1, -childBox.y1,
+                -childBox.x1 + availWidth, -childBox.y1 + availHeight);
+        }
     }
 
     /**
@@ -726,6 +734,13 @@ const DockedDash = GObject.registerClass({
             settings,
             'changed::height-fraction',
             () => this._resetPosition(),
+        ], [
+            settings,
+            'changed::dock-height',
+            () => {
+                this._resetPosition();
+                this._updateStaticBox();
+            },
         ], [
             settings,
             'changed::always-center-icons',
@@ -1343,6 +1358,16 @@ const DockedDash = GObject.registerClass({
                 this.remove_style_class_name('extended');
             }
         }
+        this._applyVerticalPosition();
+    }
+
+    _applyVerticalPosition() {
+        // Apply to the base position recalculated above, allowing the dock to
+        // move beyond the monitor without accumulating offsets on relayout.
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        const offset = DockManager.settings.dockHeight * scale;
+        this.y -= offset;
+        this._verticalOffset = offset;
     }
 
     _updateVisibleDesktop() {
@@ -1350,14 +1375,18 @@ const DockedDash = GObject.registerClass({
             return;
 
         const {desktopIconsUsableArea} = DockManager.getDefault();
-        if (this._position === St.Side.BOTTOM)
-            desktopIconsUsableArea.setMargins(this.monitorIndex, 0, this._box.height, 0, 0);
-        else if (this._position === St.Side.TOP)
-            desktopIconsUsableArea.setMargins(this.monitorIndex, this._box.height, 0, 0, 0);
-        else if (this._position === St.Side.RIGHT)
+        const verticalOffset = this._verticalOffset ?? 0;
+        if (this._position === St.Side.BOTTOM) {
+            desktopIconsUsableArea.setMargins(this.monitorIndex, 0,
+                Math.max(0, this._box.height + verticalOffset), 0, 0);
+        } else if (this._position === St.Side.TOP) {
+            desktopIconsUsableArea.setMargins(this.monitorIndex,
+                Math.max(0, this._box.height - verticalOffset), 0, 0, 0);
+        } else if (this._position === St.Side.RIGHT) {
             desktopIconsUsableArea.setMargins(this.monitorIndex, 0, 0, 0, this._box.width);
-        else if (this._position === St.Side.LEFT)
+        } else if (this._position === St.Side.LEFT) {
             desktopIconsUsableArea.setMargins(this.monitorIndex, 0, 0, this._box.width, 0);
+        }
     }
 
     _updateStaticBox() {

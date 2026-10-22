@@ -5,6 +5,7 @@ BASE_MODULES = extension.js \
                metadata.json \
                COPYING \
                README.md \
+               README-Dash-to-Dock-Soft.md \
                AUTHORS.md \
                $(NULL)
 
@@ -26,6 +27,7 @@ EXTRA_MODULES = \
                 intellihide.js \
                 prefs.js \
                 theming.js \
+                shellMenuStyle.js \
                 blurBackend.js \
                 blurRedrawGuard.js \
                 dockRedrawRecovery.js \
@@ -154,4 +156,5 @@ ifneq ($(strip $(ESLINT_TAP)),)
 endif
 
 check:
+	python3 tests/preferences-layout.py
 	ESLINT_USE_FLAT_CONFIG=false $(ESLINT) $(ESLINT_ARGS) .

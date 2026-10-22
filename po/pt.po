@@ -575,3 +575,46 @@ msgstr "Desfoque da sombra (px)"
 #: Settings.ui
 msgid "Outline intensity (%)"
 msgstr "Intensidade do contorno (%)"
+
+# Shell Soft fork appearance
+msgid "Shell menu outline and shadow"
+msgstr "Contorno e sombra dos menus do Shell"
+
+msgid "Follow the colors, corners, outline and outer shadow of notifications and Quick Settings."
+msgstr "Usar as cores, os cantos, o contorno e a sombra externa das notificações e das configurações rápidas."
+
+msgid "Independent fork of Dash to Dock Soft with the outline and outer shadow of GNOME Shell menus"
+msgstr "Fork independente do Dash to Dock Soft com o contorno e a sombra externa dos menus do GNOME Shell"
+
+msgid "Keep the default Dash to Dock corner radius"
+msgstr "Manter o raio padrão dos cantos do Dash to Dock"
+
+msgid "Dock height (px)"
+msgstr "Altura do dock (px)"
+
+msgid "0: automatic. Keeps enough space for icons. On side docks, adjusts the width."
+msgstr "0: automático. Preserva o espaço dos ícones. Nos docks laterais, ajusta a largura."
+
+msgid "Automatic"
+msgstr "Automático"
+
+msgid "Outer shadow intensity (%)"
+msgstr "Intensidade da sombra externa (%)"
+
+msgid "100% matches Quick Settings. 0% removes the shadow; 200% doubles its intensity."
+msgstr "100% usa a sombra do Quick Settings. 0% remove a sombra; 200% duplica sua intensidade."
+
+msgid "0: original position. Positive values move up; negative values move down, including beyond the screen edge."
+msgstr "0: posição original. Valores positivos sobem; negativos descem, inclusive para fora da tela."
+
+msgid "Shell menu appearance"
+msgstr "Visual dos menus do Shell"
+
+msgid "Background blur"
+msgstr "Desfoque de fundo"
+
+msgid "Manual outline"
+msgstr "Contorno manual"
+
+msgid "Icon shadows"
+msgstr "Sombras dos ícones"

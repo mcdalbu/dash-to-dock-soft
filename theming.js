@@ -15,6 +15,7 @@ import {Main} from './dependencies/shell/ui.js';
 import {LoginManager} from './dependencies/shell/misc.js';
 import {loadBlurBackend} from './blurBackend.js';
 import {BlurRedrawGuard} from './blurRedrawGuard.js';
+import {shellMenuSurfaceStyle} from './shellMenuStyle.js';
 
 import {
     Docking,
@@ -51,6 +52,11 @@ export const PositionStyleClass = Object.freeze([
     'left',
 ]);
 
+function getShellMenuBox() {
+    return Main.panel?.statusArea?.quickSettings?.menu?.box ??
+        Main.panel?.statusArea?.dateMenu?.menu?.box;
+}
+
 /**
  * Apply surface options after the upstream theme/transparency styles, including
  * window-driven transparency changes. Keep icon actors and theme radii intact.
@@ -59,14 +65,19 @@ export const PositionStyleClass = Object.freeze([
  */
 function applyDockSurfaceStyle(dock) {
     const {settings} = Docking.DockManager;
-    if (!settings.dockOutline && !settings.dockBlur)
+    if (!settings.shellMenuStyle && !settings.dockOutline && !settings.dockBlur)
         return;
 
     const background = dock.dash._background;
     let style = background.get_style() || '';
     if (style && !style.trimEnd().endsWith(';'))
         style += ';';
-    if (settings.dockOutline) {
+    const menu = settings.shellMenuStyle ? getShellMenuBox() : null;
+    if (menu) {
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        style += shellMenuSurfaceStyle(menu.get_theme_node(), scale,
+            settings.shellMenuKeepDockRadius, settings.dockShadowIntensity);
+    } else if (settings.dockOutline) {
         const color = background.get_theme_node().get_background_color();
         const luminance = (0.2126 * color.red + 0.7152 * color.green + 0.0722 * color.blue) / 255;
         const alpha = settings.dockOutlineIntensity / 100;
@@ -107,6 +118,16 @@ export class ThemeManager {
 
         this._signalsHandler.add(St.ThemeContext.get_for_stage(global.stage),
             'notify::scale-factor', () => this._updateBlur());
+
+        // Opening Quick Settings emits style changes even when its surface is
+        // unchanged. Rebuilding the dock theme then would restart transparency
+        // transitions. Compare the settled menu surface before applying it.
+        const menuBox = getShellMenuBox();
+        if (menuBox) {
+            this._signalsHandler.add(
+                [menuBox, 'style-changed', () => this._queueUpdateShellMenuStyle()],
+                [menuBox, 'notify::style', () => this._queueUpdateShellMenuStyle()]);
+        }
 
         this._signalsHandler.addWithLabel(Labels.THEME_CHANGED,
             St.ThemeContext.get_for_stage(global.stage), 'changed',
@@ -165,7 +186,37 @@ export class ThemeManager {
         });
     }
 
+    _getShellMenuSignature() {
+        const {settings} = Docking.DockManager;
+        const menu = settings.shellMenuStyle ? getShellMenuBox() : null;
+        if (!menu)
+            return null;
+        const node = menu.get_theme_node();
+        const color = node.get_background_color();
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        // Dock opacity is independent of the menu opacity. In particular,
+        // ignore Gnome Shell Soft briefly restoring its original menu fill.
+        const surface = shellMenuSurfaceStyle(node, scale,
+            settings.shellMenuKeepDockRadius, settings.dockShadowIntensity);
+        return `${color.red},${color.green},${color.blue};${surface}`;
+    }
+
+    _queueUpdateShellMenuStyle() {
+        if (this._shellMenuLater || !Docking.DockManager.settings.shellMenuStyle)
+            return;
+        this._shellMenuLater = Utils.laterAdd(Meta.LaterType.BEFORE_REDRAW, () => {
+            const signature = this._getShellMenuSignature();
+            this._shellMenuLater = 0;
+            if (signature !== this._shellMenuSignature)
+                this.updateCustomTheme();
+        });
+    }
+
     _dequeueUpdateCustomTheme() {
+        if (this._shellMenuLater) {
+            Utils.laterRemove(this._shellMenuLater);
+            this._shellMenuLater = 0;
+        }
         if (!this._updateLater)
             return;
 
@@ -212,6 +263,11 @@ export class ThemeManager {
     }
 
     _getDefaultColors() {
+        const menu = Docking.DockManager.settings.shellMenuStyle ? getShellMenuBox() : null;
+        if (menu) {
+            const node = menu.get_theme_node();
+            return [node.get_background_color(), node.get_border_color(St.Side.TOP)];
+        }
         // Remove custom style
         const oldStyle = this._dash._background.get_style();
         this._dash._background.set_style(null);
@@ -579,8 +635,11 @@ export class ThemeManager {
         const radius = settings.dockBlurRadius * scale;
         this._blurEffect[this._blurRadiusProperty] =
             this._blurRadiusProperty === 'radius' ? radius : radius / 2;
-        if (this._blurHasCornerRadius)
-            this._blurEffect.corner_radius = settings.dockBlurCornerRadius * scale;
+        if (this._blurHasCornerRadius) {
+            this._blurEffect.corner_radius = settings.shellMenuStyle && getShellMenuBox()
+                ? this._dash._background.get_theme_node().get_border_radius(St.Corner.TOPLEFT)
+                : settings.dockBlurCornerRadius * scale;
+        }
         this._updateBlurGeometry();
         this._queueBlurGeometry();
         this._queueBlurRepaint();
@@ -642,6 +701,10 @@ export class ThemeManager {
     }
 
     _updateCustomStyleClasses() {
+        if (Docking.DockManager.settings.shellMenuStyle)
+            this._actor.add_style_class_name('shell-menu-style');
+        else
+            this._actor.remove_style_class_name('shell-menu-style');
         const {settings} = Docking.DockManager;
 
         if (settings.applyCustomTheme)
@@ -687,6 +750,7 @@ export class ThemeManager {
         this._adjustTheme();
         applyDockSurfaceStyle(this._actor);
         this._updateBlur();
+        this._shellMenuSignature = this._getShellMenuSignature();
         this.emit('updated');
     }
 
@@ -747,6 +811,9 @@ export class ThemeManager {
 
     _bindSettingsChanges() {
         const keys = ['transparency-mode',
+            'shell-menu-style',
+            'shell-menu-keep-dock-radius',
+            'dock-shadow-intensity',
             'customize-alphas',
             'min-alpha',
             'max-alpha',
