@@ -72,6 +72,12 @@
       <summary>Outer shadow intensity relative to the Shell menu theme</summary>
       <description>100 keeps the exact Quick Settings shadow, 0 removes it and 200 doubles its opacity, capped at fully opaque. The border, blur radius and shadow dimensions remain unchanged.</description>
     </key>
+    <key type="i" name="dock-shadow-size">
+      <default>100</default>
+      <range min="0" max="200"/>
+      <summary>Outer shadow size relative to the Shell menu theme</summary>
+      <description>Scale the shadow offsets, blur and spread together. 100 keeps the theme dimensions, 0 removes the shadow and 200 doubles its size. Color and opacity remain independent.</description>
+    </key>
     <key type="i" name="dock-height">
       <default>0</default>
       <range min="-256" max="256"/>

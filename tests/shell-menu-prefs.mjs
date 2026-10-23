@@ -41,6 +41,15 @@ const corners = controls.get('dock_blur_corner_radius_scale');
 const keepRadius = controls.get('shell_menu_keep_dock_radius_switch');
 const height = controls.get('dock_height_scale');
 const shadow = controls.get('dock_shadow_intensity_scale');
+const shadowSize = controls.get('dock_shadow_size_scale');
+assert(shadowSize.get_value() === 100 && shadowSize.get_adjustment().lower === 0 &&
+    shadowSize.get_adjustment().upper === 200 && shadowSize.sensitive, 'Shadow size defaults and range');
+shadowSize.set_value(175);
+assert(settings.get_int('dock-shadow-size') === 175, 'Shadow size slider writes setting');
+settings.set_int('dock-shadow-size', 25);
+assert(shadowSize.get_value() === 25, 'Shadow size setting updates slider');
+settings.reset('dock-shadow-size');
+assert(shadowSize.get_value() === 100, 'Shadow size reset restores theme dimensions');
 const colors = controls.get('shell_menu_colors_switch');
 const customColorRow = controls.get('custom_background_color_listboxrow');
 const customColorSwitch = controls.get('custom_background_color_switch');
@@ -76,14 +85,14 @@ profile.active = false;
 assert(colors.sensitive && colors.active, 'Shell colors work independently of outline and shadow');
 assert(!settings.get_boolean('shell-menu-style') && outline.sensitive && corners.sensitive,
     'Manual controls after disabling profile');
-assert(!keepRadius.sensitive && !shadow.sensitive && keepRadius.active,
+assert(!keepRadius.sensitive && !shadow.sensitive && !shadowSize.sensitive && keepRadius.active,
     'Dependent controls disabled without losing saved radius option');
 outline.active = true;
 assert(intensity.sensitive, 'Manual outline intensity enabled');
 settings.set_boolean('shell-menu-style', true);
 assert(profile.active && !outline.sensitive && !intensity.sensitive && !corners.sensitive,
     'Settings update the switch and disable overridden controls');
-assert(keepRadius.sensitive && shadow.sensitive, 'Dependent controls reenabled');
+assert(keepRadius.sensitive && shadow.sensitive && shadowSize.sensitive, 'Dependent controls reenabled');
 const captureDir = GLib.getenv('SOFT_PREFS_CAPTURE_DIR');
 if (captureDir) {
     settings.reset('dock-height');
@@ -115,7 +124,7 @@ if (captureDir) {
             const ids = phase === 'position'
                 ? ['dock_size_label', 'dock_height_label', 'builtin_theme_label6', 'builtin_theme_label7',
                     'dock_size_scale', 'dock_height_scale', 'icon_size_scale', 'preview_size_scale']
-                : ['dock_shadow_intensity_scale', 'dock_outline_intensity_scale',
+                : ['dock_shadow_intensity_scale', 'dock_shadow_size_scale', 'dock_outline_intensity_scale',
                     'icon_shadow_intensity_scale', 'dock_blur_radius_scale'];
             const bounds = {};
             for (const id of ids) {

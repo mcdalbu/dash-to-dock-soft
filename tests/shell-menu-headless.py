@@ -226,6 +226,20 @@ def test():
                         JSON.stringify(a.corners)===JSON.stringify(b.corners);
                 })()''')
             evaluate('manager.settings.set_int("dock-shadow-intensity",100);')
+            for size in [0, 25, 50, 100, 150, 200]:
+                evaluate(f'manager.settings.set_int("dock-shadow-size",{size});')
+                time.sleep(0.2)
+                check(f'{theme}-shadow-size-{size}', '''(() => {
+                    const a=surfaceValues(background), b=surfaceValues(menu.box);
+                    const size=manager.settings.dockShadowSize/100;
+                    const sameSurface=JSON.stringify(a.borders)===JSON.stringify(b.borders) &&
+                        JSON.stringify(a.corners)===JSON.stringify(b.corners);
+                    if (size===0) return sameSurface && (!a.shadow || a.shadow.color[3]===0);
+                    return sameSurface && ['x','y','blur','spread'].every(k=>
+                        Math.abs(a.shadow[k]-b.shadow[k]*size)<=0.05) &&
+                        JSON.stringify(a.shadow.color)===JSON.stringify(b.shadow.color);
+                })()''')
+            evaluate('manager.settings.reset("dock-shadow-size");')
             for position in [0,1,2,3]:
                 evaluate(f'manager.settings.set_enum("dock-position",{position});')
                 time.sleep(0.4)
@@ -277,6 +291,27 @@ def test():
                  'manager.settings.reset("custom-background-color");manager.settings.reset("background-color"); '
                  'menu.box.set_style(colorTestStyle);')
         time.sleep(0.4)
+        # Profile styling must keep the original Dash to Dock layout margins.
+        for compact, extended in [(False, False), (True, False), (False, True)]:
+            for position in [0, 1, 2, 3]:
+                evaluate(f'manager.settings.set_boolean("custom-theme-shrink",{str(compact).lower()}); '
+                         f'manager.settings.set_boolean("extend-height",{str(extended).lower()}); '
+                         f'manager.settings.set_enum("dock-position",{position}); '
+                         'manager.settings.set_boolean("shell-menu-style",false);')
+                time.sleep(0.3)
+                evaluate('globalThis.dock=manager.allDocks[0];globalThis.background=dock.dash._background; '
+                         'globalThis.layoutMargins=()=>[dock.dash,background].map(a=> '
+                         '[0,1,2,3].map(side=>a.get_theme_node().get_margin(side))); '
+                         'globalThis.originalMargins=layoutMargins(); '
+                         'manager.settings.set_boolean("shell-menu-style",true);')
+                time.sleep(0.3)
+                check(f'original-margins-{compact}-{extended}-{position}',
+                      'JSON.stringify(layoutMargins())===JSON.stringify(originalMargins)')
+        evaluate('manager.settings.set_boolean("custom-theme-shrink",false); '
+                 'manager.settings.set_boolean("extend-height",false); '
+                 'manager.settings.set_enum("dock-position",2);')
+        time.sleep(0.4)
+        evaluate('globalThis.dock=manager.allDocks[0];globalThis.background=dock.dash._background;')
         evaluate('globalThis.originalMenuStyle=menu.box.get_style(); '
                  'menu.box.set_style("border: 2px solid rgba(180, 90, 30, 0.8); border-radius: 19px; " + '
                  '"box-shadow: 0 3px 8px 1px rgba(10,20,30,0.3);");')
@@ -286,6 +321,11 @@ def test():
                  'globalThis.oldScale=themeContext.scale_factor; themeContext.scale_factor=2;')
         time.sleep(0.5)
         check('scale-2', 'JSON.stringify(surfaceValues(background)) === JSON.stringify(surfaceValues(menu.box))')
+        evaluate('manager.settings.set_int("dock-shadow-size",150);')
+        time.sleep(0.3)
+        check('shadow-size-scale-2', '(() => { const a=surfaceValues(background),b=surfaceValues(menu.box); '
+              'return ["x","y","blur","spread"].every(k=>Math.abs(a.shadow[k]-b.shadow[k]*1.5)<=0.05);})()')
+        evaluate('manager.settings.reset("dock-shadow-size");')
         evaluate('themeContext.scale_factor=oldScale;')
         time.sleep(0.5)
         evaluate('menu.box.set_style(originalMenuStyle); manager.settings.set_enum("transparency-mode",3); '

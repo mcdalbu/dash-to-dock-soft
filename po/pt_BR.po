@@ -866,3 +866,9 @@ msgstr "Usar as cores dos menus do Shell"
 
 msgid "Use the background color of Quick Settings and notifications while keeping the dock opacity."
 msgstr "Usa a cor de fundo das configurações rápidas e notificações, mantendo a opacidade do dock."
+
+msgid "Outer shadow size (%)"
+msgstr "Tamanho da sombra externa (%)"
+
+msgid "100% matches Quick Settings. Smaller values shrink the shadow; 200% doubles its size. 0% removes it."
+msgstr "100% usa o tamanho do Quick Settings. Valores menores diminuem a sombra; 200% duplica seu tamanho. 0% remove a sombra."

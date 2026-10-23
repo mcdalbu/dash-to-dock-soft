@@ -5,7 +5,8 @@ function colorCss(color, intensity = 1) {
     return `rgba(${color.red}, ${color.green}, ${color.blue}, ${Math.min(1, color.alpha / 255 * intensity)})`;
 }
 
-export function shellMenuSurfaceStyle(node, scale, keepDockRadius = false, shadowIntensity = 100) {
+export function shellMenuSurfaceStyle(node, scale, keepDockRadius = false,
+    shadowIntensity = 100, shadowSize = 100) {
     const sides = ['top', 'right', 'bottom', 'left'];
     let style = sides.map((side, i) =>
         `border-${side}: ${node.get_border_width(i) / scale}px solid ${colorCss(node.get_border_color(i))};`)
@@ -15,9 +16,9 @@ export function shellMenuSurfaceStyle(node, scale, keepDockRadius = false, shado
         style += `border-radius: ${radii.join(' ')};`;
     }
     const shadow = node.get_box_shadow();
-    if (shadow) {
+    if (shadow && shadowSize > 0) {
         const lengths = [shadow.xoffset, shadow.yoffset, shadow.blur, shadow.spread]
-            .map(value => `${value / scale}px`).join(' ');
+            .map(value => `${value / scale * shadowSize / 100}px`).join(' ');
         const color = colorCss(shadow.color, shadowIntensity / 100);
         style += `box-shadow: ${shadow.inset ? 'inset ' : ''}${lengths} ${color};`;
     } else {

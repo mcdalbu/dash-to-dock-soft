@@ -76,7 +76,7 @@ function applyDockSurfaceStyle(dock) {
     if (menu && settings.shellMenuStyle) {
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
         style += shellMenuSurfaceStyle(menu.get_theme_node(), scale,
-            settings.shellMenuKeepDockRadius, settings.dockShadowIntensity);
+            settings.shellMenuKeepDockRadius, settings.dockShadowIntensity, settings.dockShadowSize);
     } else if (settings.dockOutline) {
         const color = (settings.shellMenuColors && menu ? menu : background)
             .get_theme_node().get_background_color();
@@ -204,7 +204,8 @@ export class ThemeManager {
         // Dock opacity is independent of the menu opacity. In particular,
         // ignore Gnome Shell Soft briefly restoring its original menu fill.
         const surface = settings.shellMenuStyle ? shellMenuSurfaceStyle(
-            node, scale, settings.shellMenuKeepDockRadius, settings.dockShadowIntensity) : '';
+            node, scale, settings.shellMenuKeepDockRadius,
+            settings.dockShadowIntensity, settings.dockShadowSize) : '';
         const fill = settings.shellMenuColors ? `${color.red},${color.green},${color.blue}` : '';
         return `${fill};${surface}`;
     }
@@ -880,6 +881,7 @@ export class ThemeManager {
             'shell-menu-colors',
             'shell-menu-keep-dock-radius',
             'dock-shadow-intensity',
+            'dock-shadow-size',
             'customize-alphas',
             'min-alpha',
             'max-alpha',

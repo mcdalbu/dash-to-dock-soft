@@ -2206,6 +2206,52 @@
                       <object class="GtkListBoxRow">
                         <property name="activatable">0</property>
                         <property name="child">
+                          <object class="GtkGrid" id="dock_shadow_size_grid">
+                            <property name="margin_start">12</property>
+                            <property name="margin_end">12</property>
+                            <property name="margin_top">12</property>
+                            <property name="margin_bottom">12</property>
+                            <property name="column_spacing">24</property>
+                            <property name="row_spacing">6</property>
+                            <child>
+                              <object class="GtkLabel" id="dock_shadow_size_label">
+                                <property name="label" translatable="yes">Outer shadow size (%)</property>
+                                <property name="xalign">0</property>
+                                <layout><property name="column">0</property><property name="row">0</property></layout>
+                              </object>
+                            </child>
+                            <child><object class="GtkScale" id="dock_shadow_size_scale">
+                                <property name="draw_value">1</property>
+                                <property name="digits">0</property>
+                                <property name="hexpand">1</property>
+                                <property name="adjustment">
+                                  <object class="GtkAdjustment" id="dock_shadow_size_adjustment">
+                                    <property name="lower">0</property>
+                                    <property name="upper">200</property>
+                                    <property name="step_increment">1</property>
+                                    <property name="page_increment">10</property>
+                                    <property name="value">100</property>
+                                  </object>
+                                </property>
+                              <layout><property name="column">1</property><property name="row">0</property></layout>
+                              </object></child>
+                            <child>
+                              <object class="GtkLabel" id="dock_shadow_size_hint">
+                                <property name="label" translatable="yes">100% matches Quick Settings. Smaller values shrink the shadow; 200% doubles its size. 0% removes it.</property>
+                                <property name="xalign">0</property>
+                                <property name="wrap">1</property>
+                                <style><class name="dim-label"/></style>
+                                <layout><property name="column">0</property><property name="row">1</property><property name="column-span">2</property></layout>
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="activatable">0</property>
+                        <property name="child">
                           <object class="GtkBox">
                             <property name="margin_start">24</property>
                             <property name="margin_end">12</property>

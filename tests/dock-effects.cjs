@@ -5,6 +5,33 @@ const path = require('node:path');
 const vm = require('node:vm');
 const assert = require('node:assert/strict');
 
+const surfaceSandbox = {};
+vm.createContext(surfaceSandbox);
+vm.runInContext(fs.readFileSync(path.join(__dirname, '../shellMenuStyle.js'), 'utf8')
+    .replace(/\bexport /g, '') + '\nthis.surfaceStyle = shellMenuSurfaceStyle;', surfaceSandbox);
+const shadowColor = {red: 10, green: 20, blue: 30, alpha: 128};
+const shadowNode = {
+    get_border_width: () => 2,
+    get_border_color: () => shadowColor,
+    get_border_radius: () => 12,
+    get_box_shadow: () => ({xoffset: -4, yoffset: 6, blur: 16, spread: 2, color: shadowColor}),
+};
+assert.equal(surfaceSandbox.surfaceStyle(shadowNode, 1),
+    surfaceSandbox.surfaceStyle(shadowNode, 1, false, 100, 100), 'Default size preserves theme');
+for (const scale of [1, 2]) {
+    for (const size of [0, 25, 50, 100, 150, 200]) {
+        const css = surfaceSandbox.surfaceStyle(shadowNode, scale, false, 50, size);
+        const lengths = [-4, 6, 16, 2].map(v => `${v / scale * size / 100}px`).join(' ');
+        assert(css.includes(size === 0 ? 'box-shadow: none;' :
+            `box-shadow: ${lengths} rgba(10, 20, 30, ${128 / 255 * 0.5});`));
+        assert(css.includes(`border-top: ${2 / scale}px solid`), 'Size leaves border unchanged');
+        assert(css.includes(`border-radius: ${Array(4).fill(`${12 / scale}px`).join(' ')};`),
+            'Size leaves corners unchanged');
+    }
+}
+assert(surfaceSandbox.surfaceStyle({...shadowNode, get_box_shadow: () => null}, 1, false, 100, 200)
+    .includes('box-shadow: none;'), 'Themes without a shadow remain supported');
+
 const settings = {applyCustomTheme: false, customThemeShrink: false,
     runningIndicatorStyle: 0, forceStraightCorner: false,
     iconShadow: false, iconShadowIntensity: 24, iconShadowOffsetX: 0, iconShadowOffsetY: 2, iconShadowBlur: 4,

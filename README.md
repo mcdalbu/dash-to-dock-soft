@@ -1,20 +1,18 @@
 # Dash to Dock Soft
 
 Fork independente baseado no [Dash to Dock](https://github.com/micheleg/dash-to-dock)
-v110. A versão **16** incorpora o visual e os ajustes validados no projeto
-experimental Shell Soft v4. O dock usa o mesmo contorno, os mesmos cantos e a mesma sombra externa dos
+v110. O dock usa o mesmo contorno, os mesmos cantos e a mesma sombra externa dos
 menus de notificações/calendário e Quick Settings do GNOME Shell.
 
 - **Nome:** Dash to Dock Soft
 - **UUID:** `dash-to-dock-soft@local`
 - **Schema:** `org.gnome.shell.extensions.dash-to-dock-soft`
-- **Versão deste fork:** 19
+- **Versão deste fork:** 20
 - **Repositório:** [mcdalbu/dash-to-dock-soft](https://github.com/mcdalbu/dash-to-dock-soft)
 
 Esta versão atualiza o Dash to Dock Soft principal e mantém seu UUID, schema
 e caminho de configurações: os valores já salvos continuam disponíveis.
-Mantenha apenas uma extensão de dock ativada por vez. Se usava o fork experimental,
-desative `dash-to-dock-shell-soft@local` antes de ativar o principal.
+Mantenha apenas uma extensão de dock ativada por vez.
 A extensão **Gnome Shell Soft** pode continuar ativa para os menus.
 
 ## Visual dos menus do Shell
@@ -31,7 +29,9 @@ A cor do fundo tem um controle independente, descrito abaixo.
 
 Acompanha mudanças entre tema claro e escuro e estilos aplicados ao menu por
 **Gnome Shell Soft**. Não aplica transparência aos ícones nem os desfoca.
-O dock flutuante deixa 12 pixels lógicos até a borda da tela para a sombra.
+A versão 20 restaura as margens originais do Dash to Dock, também com o visual
+dos menus ativado. A margem fixa de 12 pixels usada para a sombra foi removida.
+Sombras que ultrapassam a borda do monitor são recortadas pela tela.
 Na versão 17, a sombra externa acompanha o dock durante toda a animação de
 entrada e saída, em vez de aparecer somente ao atingir a posição final.
 O recorte de pintura acompanha a borda do monitor, preservando a sombra fora
@@ -52,8 +52,11 @@ O controle **Intensidade da sombra externa (%)** vai de **0% a 200%** e afeta
 apenas a opacidade da sombra externa. O padrão **100%** usa exatamente a sombra
 do Quick Settings, incluindo a diferença entre os temas claro e escuro. **0%**
 remove a sombra; **200%** duplica sua opacidade, limitada a 100% de opacidade
-real. A cor, os deslocamentos e o desfoque permanecem os do tema. Esse controle
-fica disponível com o estilo dos menus ativado.
+real. O controle **Tamanho da sombra externa (%)**, novo na versão 20, ajusta
+os deslocamentos, o desfoque e a expansão juntos, de **0% a 200%**. **100%**
+preserva as dimensões do tema, valores menores reduzem a sombra e **200%**
+duplica seu tamanho. **0%** remove a sombra. O tamanho é independente da cor
+e da intensidade. Os dois controles ficam disponíveis com o estilo dos menus ativado.
 
 ## Cores dos menus do Shell
 
@@ -72,7 +75,8 @@ sem apagar os ajustes anteriores. Os ícones mantêm suas cores.
 
 Em **Preferências → Posição e tamanho**, o controle **Altura do dock (px)**
 move o dock verticalmente, de **−256 a +256 pixels lógicos**. Valores positivos
-sobem e valores negativos descem; **0** restaura a posição original. O deslocamento
+sobem e valores negativos descem; o padrão **0** restaura a posição original
+do Dash to Dock, sem a margem adicional das versões anteriores. O deslocamento
 pode ultrapassar as bordas do monitor. O tamanho dos ícones e a espessura
 do fundo permanecem iguais. O controle funciona também nos docks laterais.
 
@@ -122,13 +126,12 @@ retos, enquanto a superfície continua arredondada. A biblioteca é opcional e n
 ## Instalar
 
 ```bash
-gnome-extensions install --force dash-to-dock-soft@local_v19.zip
+gnome-extensions install --force dash-to-dock-soft@local_v20.zip
 ```
 
 Encerre a sessão e entre novamente para carregar a atualização. Depois:
 
 ```bash
-gnome-extensions disable dash-to-dock-shell-soft@local
 # Se usar o original, desative também dash-to-dock@micxgx.gmail.com.
 gnome-extensions enable dash-to-dock-soft@local
 gnome-extensions prefs dash-to-dock-soft@local
@@ -147,7 +150,7 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=19
+make zip-file VERSION=20
 ```
 
 O teste de integração inicia um GNOME Shell 50 headless em D-Bus e diretórios de
@@ -163,7 +166,9 @@ escala 2×, alteração de estilos com o menu fechado, transparência dinâmica,
 ocultação, ativação/desativação e repouso. Também testa os controles GTK novos.
 Resultados e capturas em `validation/shell-menu-*`.
 Os testes incluem raio nativo nos modos normal, compacto e estendido,
-movimentação vertical sem redimensionar os ícones e intensidade da sombra
+margens originais nas quatro posições e nos modos normal, compacto e estendido,
+movimentação vertical sem redimensionar os ícones, tamanho da sombra entre 0% e
+200% (incluindo escala 2×) e intensidade da sombra
 em 0%, 50%, 100%, 150% e 200% nos dois temas, além dos vínculos dos controles GTK.
 Também medem a opacidade durante aberturas
 repetidas do Quick Settings e verificam o alinhamento das preferências em janelas reais.
