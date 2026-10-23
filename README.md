@@ -8,7 +8,7 @@ menus de notificações/calendário e Quick Settings do GNOME Shell.
 - **Nome:** Dash to Dock Soft
 - **UUID:** `dash-to-dock-soft@local`
 - **Schema:** `org.gnome.shell.extensions.dash-to-dock-soft`
-- **Versão deste fork:** 18
+- **Versão deste fork:** 19
 - **Repositório:** [mcdalbu/dash-to-dock-soft](https://github.com/mcdalbu/dash-to-dock-soft)
 
 Esta versão atualiza o Dash to Dock Soft principal e mantém seu UUID, schema
@@ -101,6 +101,17 @@ O blur dinâmico herdado do Dash to Dock Soft vem **ativado**, com intensidade
 separada com `BlurEffect` em modo `BACKGROUND`, preservando os ícones nítidos.
 A transparência dinâmica e os demais ajustes herdados continuam disponíveis.
 
+Na versão 19, o blur e a proteção de redesenho completo são ocultados quando
+o fundo opaco cobre toda a camada, após a transição de cor e nos frames seguintes.
+Ícones em hover não reativam um blur já encoberto. Se o blur ainda aparece nos
+cantos, ele permanece ativo; voltar à transparência restaura a captura.
+O filtro de janelas acompanha mudanças da geometria e da intensidade do blur.
+A proteção contra artefatos continua ativa enquanto o blur está visível.
+As propriedades do tema são lidas nas mudanças de estilo e reutilizadas nos frames.
+Retirar a segunda camada em cantos opacos pode mudar a suavização do contorno.
+As otimizações não adicionam timers periódicos; o ganho de GPU depende do cenário
+e não foi quantificado.
+
 Quando segue o visual dos menus, o recorte arredondado do blur acompanha o raio
 real do fundo, incluindo a escala. O recorte do blur requer GNOME Rounded Blur
 ou suporte nativo a `corner-radius`. Sem esse recurso, o blur funciona com cantos
@@ -111,7 +122,7 @@ retos, enquanto a superfície continua arredondada. A biblioteca é opcional e n
 ## Instalar
 
 ```bash
-gnome-extensions install --force dash-to-dock-soft@local_v18.zip
+gnome-extensions install --force dash-to-dock-soft@local_v19.zip
 ```
 
 Encerre a sessão e entre novamente para carregar a atualização. Depois:
@@ -136,7 +147,7 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=18
+make zip-file VERSION=19
 ```
 
 O teste de integração inicia um GNOME Shell 50 headless em D-Bus e diretórios de

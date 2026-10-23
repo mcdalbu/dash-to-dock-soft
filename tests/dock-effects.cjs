@@ -32,7 +32,7 @@ class MockBlurEffect {
 class MockActor {
     constructor(params) {
         Object.assign(this, {x: 0, y: 0, width: 0, height: 0,
-            translation_x: 0, translation_y: 0, scale_x: 1, scale_y: 1});
+            translation_x: 0, translation_y: 0, scale_x: 1, scale_y: 1, visible: true});
         Object.assign(this, params);
         this.mapped = true;
         this.redraws = 0;
@@ -74,6 +74,8 @@ class MockActor {
         return [sx !== 0 && sy !== 0, (x - px) / sx, (y - py) / sy];
     }
     get_paint_opacity() { return this.opacity ?? 255; }
+    get mapped() { return this._mapped && this.visible && (this.parent?.mapped ?? true); }
+    set mapped(value) { this._mapped = value; }
     set_position(x, y) { this.x = x; this.y = y; }
     set_size(width, height) { this.width = width; this.height = height; }
     destroy() {
@@ -196,7 +198,7 @@ function createDock() {
             }
         },
         get_theme_node: () => ({get_background_color: () => color,
-            get_border_radius: () => 24}),
+            get_border_radius: () => 24, get_transition_duration: () => 250}),
         add_effect_with_name: (name, effect) => effects.set(name, effect),
         remove_effect: effect => {
             const entry = [...effects].find(([, value]) => value === effect);
@@ -415,6 +417,8 @@ context.scale_factor = 2;
 b.manager._updateBlur();
 assert.equal(b.manager._blurEffect.corner_radius, 48);
 // Window redraws are batched; moving out still invalidates the old footprint.
+b.background.set_style('background-color: rgba(25,25,25,0.55);');
+b.manager._refreshBlurForStyle(b.background);
 for (const [id, callback] of [...laters]) {laters.delete(id); callback();}
 const window = {mapped: true, rect: {x: 0, y: 0, width: 800, height: 600},
     get_meta_window() {return {get_frame_rect: () => this.rect};}};
@@ -524,6 +528,55 @@ transformed.parent.scale_x = 0;
 paint();
 assert.equal(laters.size, 0, 'Ignore noninvertible transforms until allocation settles');
 transformed.manager.destroy();
+
+// An opaque surface stops both blur repaints and full-monitor redraws once its
+// CSS fill has settled. Hovering its children must not wake the hidden effect.
+const opaque = createDock();
+opaque.manager._updateBlur();
+flushLaters();
+const opaqueFrame = handler(opaque, sandbox.global.stage, 'before-update');
+const opaqueAfter = handler(opaque, sandbox.global.stage, 'after-update');
+monotonicTime += 200000;
+opaqueFrame(undefined, view);
+assert(opaque.manager._blurActor.mapped, 'Keep blur through the fill transition');
+opaqueAfter();
+monotonicTime += 150000;
+opaqueFrame(undefined, view);
+assert(!opaque.manager._blurActor.mapped, 'Cull blur completely covered by the settled fill');
+assert.equal(drawFlags, 0, 'Opaque surfaces do not request full-monitor redraws');
+let coverageReads = 0;
+const opaqueNode = opaque.background.get_theme_node;
+opaque.background.get_theme_node = () => {coverageReads++; return opaqueNode();};
+for (let i = 0; i < 60; i++) opaqueFrame(undefined, view);
+assert.equal(coverageReads, 0, 'Settled frames reuse theme coverage without querying St');
+const opaqueRepaints = opaque.manager._blurEffect.repaints;
+opaque.manager._refreshBlurForStyle(new MockActor({transitionDuration: 250}));
+opaque.manager._refreshBlurForStyle(opaque.background);
+opaqueFrame(undefined, view);
+assert(!opaque.manager._blurActor.mapped, 'Unchanged opaque style does not wake the effect');
+flushLaters();
+assert.equal(opaque.manager._blurEffect.repaints, opaqueRepaints);
+opaque.background.opacity = 128;
+opaqueFrame(undefined, view);
+assert(opaque.manager._blurActor.mapped, 'A fading surface still needs its backdrop');
+opaqueAfter();
+flushLaters();
+opaque.background.opacity = 255;
+opaqueFrame(undefined, view);
+assert(!opaque.manager._blurActor.mapped);
+opaque.background.set_style('background-color: rgba(25,25,25,0.55);');
+opaque.manager._refreshBlurForStyle(opaque.background);
+assert(opaque.manager._blurActor.mapped, 'Restore immediately when the fill becomes transparent');
+flushLaters();
+opaque.background.set_style(null);
+opaque.manager._syncBlurVisibility(true);
+monotonicTime += 350000;
+opaque.manager._blurEffect.corner_radius = 0;
+opaqueFrame(undefined, view);
+assert(opaque.manager._blurActor.mapped, 'Keep blur that extends outside the rounded fill');
+opaqueAfter();
+opaque.manager.destroy();
+flushLaters();
 
 const resumed = createDock();
 resumed.manager._updateBlur();

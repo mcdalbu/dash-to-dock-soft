@@ -1,0 +1,1607 @@
+{
+  "own-identity": true,
+  "profile-default": true,
+  "dark": {
+    "dock": {
+      "borders": [
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ]
+      ],
+      "corners": [
+        30,
+        30,
+        30,
+        30
+      ],
+      "shadow": {
+        "x": 0,
+        "y": 2,
+        "blur": 4,
+        "spread": 0,
+        "color": [
+          0,
+          0,
+          0,
+          51
+        ],
+        "inset": false
+      }
+    },
+    "menu": {
+      "borders": [
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            66,
+            66,
+            71,
+            255
+          ]
+        ]
+      ],
+      "corners": [
+        30,
+        30,
+        30,
+        30
+      ],
+      "shadow": {
+        "x": 0,
+        "y": 2,
+        "blur": 4,
+        "spread": 0,
+        "color": [
+          0,
+          0,
+          0,
+          51
+        ],
+        "inset": false
+      }
+    },
+    "fill": 140
+  },
+  "dark-border-shadow-corners-match": true,
+  "dark-actual-opacity": true,
+  "dark-shell-menu-colors": true,
+  "dark-quick-settings-trace": {
+    "styles": 0,
+    "updates": 0,
+    "alphas": [
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140
+    ]
+  },
+  "dark-shadow-0": true,
+  "dark-shadow-50": true,
+  "dark-shadow-100": true,
+  "dark-shadow-150": true,
+  "dark-shadow-200": true,
+  "dark-position-0": true,
+  "dark-position-1": true,
+  "dark-position-2": true,
+  "dark-position-3": true,
+  "light": {
+    "dock": {
+      "borders": [
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ]
+      ],
+      "corners": [
+        30,
+        30,
+        30,
+        30
+      ],
+      "shadow": {
+        "x": 0,
+        "y": 2,
+        "blur": 4,
+        "spread": 0,
+        "color": [
+          0,
+          0,
+          0,
+          12
+        ],
+        "inset": false
+      }
+    },
+    "menu": {
+      "borders": [
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ],
+        [
+          1,
+          [
+            230,
+            230,
+            235,
+            255
+          ]
+        ]
+      ],
+      "corners": [
+        30,
+        30,
+        30,
+        30
+      ],
+      "shadow": {
+        "x": 0,
+        "y": 2,
+        "blur": 4,
+        "spread": 0,
+        "color": [
+          0,
+          0,
+          0,
+          12
+        ],
+        "inset": false
+      }
+    },
+    "fill": 140
+  },
+  "light-border-shadow-corners-match": true,
+  "light-actual-opacity": true,
+  "light-shell-menu-colors": true,
+  "light-quick-settings-trace": {
+    "styles": 0,
+    "updates": 0,
+    "alphas": [
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140,
+      140
+    ]
+  },
+  "light-shadow-0": true,
+  "light-shadow-50": true,
+  "light-shadow-100": true,
+  "light-shadow-150": true,
+  "light-shadow-200": true,
+  "light-position-0": true,
+  "light-position-1": true,
+  "light-position-2": true,
+  "light-position-3": true,
+  "shell-colors-override-saved-custom-color": true,
+  "colors-off-restores-custom-color": true,
+  "shell-colors-independent-of-outline": true,
+  "colors-only-follows-live-menu-color": true,
+  "shell-colors-opacity-mode-0": true,
+  "shell-colors-opacity-mode-3": true,
+  "shell-colors-built-in-theme": true,
+  "live-menu-style": true,
+  "scale-2": true,
+  "dynamic-transparency-keeps-surface": true,
+  "profile-off": true,
+  "profile-on": true,
+  "keep-native-corners": true,
+  "native-corners-keep-shadow": true,
+  "blur-native-corners": true,
+  "compact-native-corners": true,
+  "panel-native-corners": true,
+  "vertical-position": [
+    {
+      "requested": 32,
+      "y": 876,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 876,
+      "targetY": 864,
+      "exportedY": 864
+    },
+    {
+      "requested": 120,
+      "y": 788,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 788,
+      "targetY": 776,
+      "exportedY": 776
+    },
+    {
+      "requested": 256,
+      "y": 652,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 652,
+      "targetY": 640,
+      "exportedY": 640
+    },
+    {
+      "requested": 80,
+      "y": 828,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 828,
+      "targetY": 816,
+      "exportedY": 816
+    },
+    {
+      "requested": 0,
+      "y": 908,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 908,
+      "targetY": 896,
+      "exportedY": 896
+    },
+    {
+      "requested": -8,
+      "y": 916,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 916,
+      "targetY": 904,
+      "exportedY": 904
+    },
+    {
+      "requested": -32,
+      "y": 940,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 940,
+      "targetY": 928,
+      "exportedY": 928
+    },
+    {
+      "requested": -64,
+      "y": 972,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 972,
+      "targetY": 960,
+      "exportedY": 960
+    },
+    {
+      "requested": -120,
+      "y": 1028,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 1028,
+      "targetY": 1016,
+      "exportedY": 1016
+    },
+    {
+      "requested": -256,
+      "y": 1164,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 1164,
+      "targetY": 1152,
+      "exportedY": 1152
+    },
+    {
+      "requested": 0,
+      "y": 908,
+      "height": 80,
+      "width": 539,
+      "iconSize": 48,
+      "blurY": 908,
+      "targetY": 896,
+      "exportedY": 896
+    }
+  ],
+  "offscreen-position-stable": true,
+  "vertical-scale-2": true,
+  "negative-vertical-scale-2": true,
+  "side-vertical-40": true,
+  "side-vertical--40": true,
+  "side-vertical-0": true,
+  "top-moves-down": true,
+  "top-moves-offscreen": true,
+  "sliding-shadow-bottom": {
+    "pixels": 1291,
+    "maximum": 80
+  },
+  "bottom-fully-hidden": true,
+  "sliding-shadow-top": {
+    "pixels": 4599,
+    "maximum": 80
+  },
+  "top-fully-hidden": true,
+  "sliding-shadow-left": {
+    "pixels": 3171,
+    "maximum": 94
+  },
+  "left-fully-hidden": true,
+  "sliding-shadow-right": {
+    "pixels": 3171,
+    "maximum": 96
+  },
+  "right-fully-hidden": true,
+  "autohide-start-state": {
+    "enabled": true,
+    "fixed": false,
+    "state": 0,
+    "slide": 0
+  },
+  "autohide-starts-hidden": true,
+  "autohide-shadow-frames": [
+    {
+      "slide": 0,
+      "clip": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        1000,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.08319375000000001,
+      "clip": [
+        -450,
+        -1000,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        992.34765625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.15819375,
+      "clip": [
+        -450,
+        -992.34765625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        985.4453125,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.234375,
+      "clip": [
+        -450,
+        -985.4453125,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        978.4375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.30694375,
+      "clip": [
+        -450,
+        -978.4375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        971.76171875,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.3759,
+      "clip": [
+        -450,
+        -971.76171875,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        965.41796875,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.4375,
+      "clip": [
+        -450,
+        -965.41796875,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        959.75,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.49944374999999996,
+      "clip": [
+        -450,
+        -959.75,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        954.05078125,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.557775,
+      "clip": [
+        -450,
+        -954.05078125,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        948.68359375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.609375,
+      "clip": [
+        -450,
+        -948.68359375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        943.9375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.66069375,
+      "clip": [
+        -450,
+        -943.9375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        939.21484375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.7084,
+      "clip": [
+        -450,
+        -939.21484375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        934.828125,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.75,
+      "clip": [
+        -450,
+        -934.828125,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        931,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.79069375,
+      "clip": [
+        -450,
+        -931,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        927.2578125,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.82569375,
+      "clip": [
+        -450,
+        -927.2578125,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        924.03515625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.859375,
+      "clip": [
+        -450,
+        -924.03515625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        920.9375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.88944375,
+      "clip": [
+        -450,
+        -920.9375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        918.171875,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.91444375,
+      "clip": [
+        -450,
+        -918.171875,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        915.87109375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.9375,
+      "clip": [
+        -450,
+        -915.87109375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        913.75,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.95694375,
+      "clip": [
+        -450,
+        -913.75,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        911.9609375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.972775,
+      "clip": [
+        -450,
+        -911.9609375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        910.50390625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.984375,
+      "clip": [
+        -450,
+        -910.50390625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        909.4375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.99319375,
+      "clip": [
+        -450,
+        -909.4375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        908.625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.99819375,
+      "clip": [
+        -450,
+        -908.625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        908.16796875,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 1,
+      "clip": [
+        -450,
+        -908.16796875,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        908,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 1,
+      "clip": [
+        -450,
+        -908,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        908,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.91680625,
+      "clip": [
+        -450,
+        -908,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        915.65234375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.837225,
+      "clip": [
+        -450,
+        -915.65234375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        922.9765625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.765625,
+      "clip": [
+        -450,
+        -922.9765625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        929.5625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.6930562499999999,
+      "clip": [
+        -450,
+        -929.5625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        936.23828125,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.6241,
+      "clip": [
+        -450,
+        -936.23828125,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        942.58203125,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.5625,
+      "clip": [
+        -450,
+        -942.58203125,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        948.25,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.50055625,
+      "clip": [
+        -450,
+        -948.25,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        953.94921875,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.442225,
+      "clip": [
+        -450,
+        -953.94921875,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        959.31640625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.390625,
+      "clip": [
+        -450,
+        -959.31640625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        964.0625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.33930625000000003,
+      "clip": [
+        -450,
+        -964.0625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        968.78515625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.29159999999999997,
+      "clip": [
+        -450,
+        -968.78515625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        973.171875,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.25,
+      "clip": [
+        -450,
+        -973.171875,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        977,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.20930625000000003,
+      "clip": [
+        -450,
+        -977,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        980.7421875,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.17222500000000007,
+      "clip": [
+        -450,
+        -980.7421875,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        984.15625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.140625,
+      "clip": [
+        -450,
+        -984.15625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        987.0625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.11055625000000002,
+      "clip": [
+        -450,
+        -987.0625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        989.828125,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.08410000000000006,
+      "clip": [
+        -450,
+        -989.828125,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        992.26171875,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.0625,
+      "clip": [
+        -450,
+        -992.26171875,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        994.25,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.04305625000000002,
+      "clip": [
+        -450,
+        -994.25,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        996.0390625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.027225000000000055,
+      "clip": [
+        -450,
+        -996.0390625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        997.49609375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.015625,
+      "clip": [
+        -450,
+        -997.49609375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        998.5625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.006806250000000014,
+      "clip": [
+        -450,
+        -998.5625,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        999.375,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0.0016000000000000458,
+      "clip": [
+        -450,
+        -999.375,
+        1440,
+        1000
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        999.8515625,
+        539,
+        80
+      ]
+    },
+    {
+      "slide": 0,
+      "clip": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "size": [
+        539,
+        92
+      ],
+      "background": [
+        450,
+        1000,
+        539,
+        80
+      ]
+    }
+  ],
+  "idle-frames": 0,
+  "opaque-blur-hidden": true,
+  "opaque-no-redraw-guard": true,
+  "idle-frames-opaque": 0,
+  "transparent-blur-restored": true,
+  "disable-cleanup": true,
+  "reenable": true,
+  "preferences-position-layout": {
+    "dock_size_label": {
+      "x": 58,
+      "y": 457,
+      "width": 208,
+      "height": 30
+    },
+    "dock_height_label": {
+      "x": 58,
+      "y": 595,
+      "width": 208,
+      "height": 42
+    },
+    "builtin_theme_label6": {
+      "x": 58,
+      "y": 689,
+      "width": 208,
+      "height": 46
+    },
+    "builtin_theme_label7": {
+      "x": 58,
+      "y": 809,
+      "width": 208,
+      "height": 42
+    },
+    "dock_size_scale": {
+      "x": 290,
+      "y": 457,
+      "width": 435,
+      "height": 30
+    },
+    "dock_height_scale": {
+      "x": 290,
+      "y": 595,
+      "width": 435,
+      "height": 42
+    },
+    "icon_size_scale": {
+      "x": 290,
+      "y": 689,
+      "width": 435,
+      "height": 46
+    },
+    "preview_size_scale": {
+      "x": 290,
+      "y": 809,
+      "width": 435,
+      "height": 42
+    }
+  },
+  "preferences-appearance-layout": {
+    "dock_shadow_intensity_scale": {
+      "x": 333,
+      "y": 405,
+      "width": 392,
+      "height": 42
+    },
+    "dock_outline_intensity_scale": {
+      "x": 333,
+      "y": 881,
+      "width": 392,
+      "height": 42
+    },
+    "icon_shadow_intensity_scale": {
+      "x": 333,
+      "y": 1063,
+      "width": 392,
+      "height": 42
+    },
+    "dock_blur_radius_scale": {
+      "x": 333,
+      "y": 629,
+      "width": 392,
+      "height": 42
+    }
+  },
+  "preferences": {
+    "passed": true,
+    "output": "Preferences: Shell colors, saved custom color, height, radius, shadow and dependent controls passed"
+  },
+  "passed": true
+}

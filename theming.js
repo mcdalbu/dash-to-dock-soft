@@ -369,7 +369,49 @@ export class ThemeManager {
         const duration = Math.max(0, actor.get_theme_node().get_transition_duration());
         this._blurStyleUntil = Math.max(this._blurStyleUntil || 0,
             GLib.get_monotonic_time() + (duration + 50) * 1000);
+        if (actor === this._dash._background)
+            this._syncBlurVisibility(true);
         this._queueBlurRepaint();
+    }
+
+    _syncBlurVisibility(refresh = false) {
+        if (!this._blurGroup)
+            return;
+        const background = this._dash._background;
+        // Read theme properties only on style changes, not for every frame.
+        if (refresh || !this._blurCoverage) {
+            const node = background.get_theme_node();
+            const {alpha} = node.get_background_color();
+            const corners = [0, 1, 2, 3].map(corner => node.get_border_radius(corner));
+            const signature = [alpha, ...corners].join(',');
+            this._blurCoverage = {alpha, corners};
+            if (signature !== this._blurSurfaceSignature) {
+                this._blurSurfaceSignature = signature;
+                this._blurOpaqueUntil = GLib.get_monotonic_time() +
+                    (node.get_transition_duration() + 50) * 1000;
+            }
+        }
+        const {alpha, corners} = this._blurCoverage;
+        // Theme nodes expose the target color during a CSS transition.
+        // Only cull a settled, opaque fill that covers the blur's corners.
+        const radius = this._blurHasCornerRadius ? this._blurEffect.corner_radius : 0;
+        const covered = alpha === 255 &&
+            background.get_paint_opacity() === 255 &&
+            GLib.get_monotonic_time() >= this._blurOpaqueUntil &&
+            corners.every(corner => corner <= radius);
+        const wasVisible = this._blurGroup.visible;
+        this._blurGroup.visible = !covered;
+        if (covered) {
+            this._blurRedrawGuard?.end();
+            if (this._blurRepaintLater) {
+                Utils.laterRemove(this._blurRepaintLater);
+                this._blurRepaintLater = 0;
+            }
+        } else if (!wasVisible) {
+            // A hidden effect may retain an outdated framebuffer capture.
+            this._blurRecoveryPending = true;
+            this._queueBlurRecovery();
+        }
     }
 
     _trackBlurDashActor(actor) {
@@ -421,6 +463,10 @@ export class ThemeManager {
         const record = {label, affected: this._windowIntersectsBlur(actor)};
         this._blurWindows.set(actor, record);
         const update = () => {
+            if (!this._blurActor?.mapped) {
+                record.affected = false;
+                return;
+            }
             const affected = this._windowIntersectsBlur(actor);
             if (affected || record.affected)
                 this._queueBlurRepaint();
@@ -460,9 +506,13 @@ export class ThemeManager {
         this._blurRedrawGuard = new BlurRedrawGuard(Clutter, Meta);
         this._blurDashActors = new Map();
         this._blurStyleUntil = 0;
+        this._blurOpaqueUntil = 0;
+        this._blurSurfaceSignature = null;
+        this._blurCoverage = null;
         this._trackBlurDashActor(this._dash);
         this._signalsHandler.addWithLabel(Labels.BLUR_DASH,
             [global.stage, 'before-update', (_stage, view) => {
+                this._syncBlurVisibility();
                 this._blurRedrawGuard.begin(this._blurActor, view);
                 if (GLib.get_monotonic_time() < this._blurStyleUntil)
                     this._repaintBlur();
@@ -517,7 +567,8 @@ export class ThemeManager {
                     return;
                 this._signalsHandler.removeWithLabel(record.label);
                 this._blurWindows.delete(actor);
-                this._queueBlurRepaint();
+                if (record.affected)
+                    this._queueBlurRepaint();
             }],
             [global.display, 'restacked', () => this._queueBlurRepaint()]);
         for (const actor of global.get_window_actors())
@@ -588,6 +639,8 @@ export class ThemeManager {
             return;
         actor.set_position(x, y);
         actor.set_size(width, height);
+        for (const [window, record] of this._blurWindows ?? [])
+            record.affected = this._windowIntersectsBlur(window);
         this._queueBlurRepaint();
     }
 
@@ -649,7 +702,10 @@ export class ThemeManager {
                 ? this._dash._background.get_theme_node().get_border_radius(St.Corner.TOPLEFT)
                 : settings.dockBlurCornerRadius * scale;
         }
+        this._syncBlurVisibility(true);
         this._updateBlurGeometry();
+        for (const [window, record] of this._blurWindows ?? [])
+            record.affected = this._windowIntersectsBlur(window);
         this._queueBlurGeometry();
         this._queueBlurRepaint();
     }

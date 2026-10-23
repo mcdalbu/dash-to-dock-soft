@@ -59,7 +59,10 @@ export default class Helper extends Extension {
             # in this test's private runtime. Remove only that temporary mount.
             document_mount = runtime / 'doc'
             if os.path.ismount(document_mount):
-                subprocess.run(['fusermount3', '-u', str(document_mount)], check=True)
+                unmount = subprocess.run(['fusermount3', '-u', str(document_mount)], capture_output=True)
+                # The portal may unmount itself between ismount() and fusermount.
+                if unmount.returncode and os.path.ismount(document_mount):
+                    unmount.check_returncode()
             time.sleep(0.3)
 
 
@@ -441,6 +444,30 @@ def test():
         evaluate('global.stage.disconnect(frameId);')
         if results['idle-frames'] > 2:
             raise AssertionError('Unexpected idle repaints')
+
+        evaluate('manager.settings.set_boolean("shell-menu-style",false); '
+                 'manager.settings.set_boolean("force-straight-corner",true); '
+                 'manager.settings.set_int("dock-blur-corner-radius",0); '
+                 'manager.settings.set_enum("transparency-mode",1); '
+                 'manager.settings.set_double("background-opacity",1);')
+        time.sleep(0.8)
+        evaluate('global.stage.queue_redraw();')
+        time.sleep(0.2)
+        check('opaque-blur-hidden', 'surfaceValues(background).corners.every(v=>v===0) && '
+              '!dock._themeManager._blurActor.mapped && !dock._themeManager._blurRepaintLater')
+        check('opaque-no-redraw-guard', '''(() => {
+            const Clutter=imports.gi.Clutter;
+            return (Clutter.get_debug_flags()[1] & Clutter.DrawDebugFlag.DISABLE_CLIPPED_REDRAWS)===0;
+        })()''')
+        evaluate('globalThis.frames=0;frameId=global.stage.connect("after-paint",()=>frames++);')
+        time.sleep(1.5)
+        results['idle-frames-opaque'] = evaluate('frames')
+        evaluate('global.stage.disconnect(frameId);')
+        assert results['idle-frames-opaque'] <= 2
+        evaluate('manager.settings.set_double("background-opacity",0.55);')
+        time.sleep(0.4)
+        check('transparent-blur-restored', 'dock._themeManager._blurActor.mapped')
+
         evaluate('extension.disable();')
         check('disable-cleanup', '!Main.uiGroup.get_children().some(a=>a.name === "dashtodockContainer")')
         evaluate('extension.enable();')
