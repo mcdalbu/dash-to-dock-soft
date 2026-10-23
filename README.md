@@ -7,7 +7,7 @@ menus de notificações/calendário e Quick Settings do GNOME Shell.
 - **Nome:** Dash to Dock Soft
 - **UUID:** `dash-to-dock-soft@local`
 - **Schema:** `org.gnome.shell.extensions.dash-to-dock-soft`
-- **Versão deste fork:** 20
+- **Versão deste fork:** 21
 - **Repositório:** [mcdalbu/dash-to-dock-soft](https://github.com/mcdalbu/dash-to-dock-soft)
 
 Esta versão atualiza o Dash to Dock Soft principal e mantém seu UUID, schema
@@ -74,16 +74,16 @@ sem apagar os ajustes anteriores. Os ícones mantêm suas cores.
 ## Altura do dock
 
 Em **Preferências → Posição e tamanho**, o controle **Altura do dock (px)**
-move o dock verticalmente, de **−256 a +256 pixels lógicos**. Valores positivos
+move o dock verticalmente, de **−12 a +12 pixels lógicos**. Valores positivos
 sobem e valores negativos descem; o padrão **0** restaura a posição original
 do Dash to Dock, sem a margem adicional das versões anteriores. O deslocamento
 pode ultrapassar as bordas do monitor. O tamanho dos ícones e a espessura
 do fundo permanecem iguais. O controle funciona também nos docks laterais.
 
-A versão 16 aplica o valor ao posicionamento real do dock, ao blur e à geometria
-usada para ocultação e reserva de espaço, sem limitar a posição à tela.
-Valores negativos podem levar o dock parcial ou totalmente para fora da borda
-inferior. A alteração é aplicada ao vivo; voltar a 0 restaura a posição.
+A versão 21 limita o controle e o schema ao intervalo de −12 a +12 px.
+A alteração é aplicada ao vivo ao dock, ao blur e à geometria de ocultação
+e reserva de espaço; voltar a 0 restaura a posição. Valores salvos em versões
+anteriores fora desse intervalo usam o padrão 0.
 
 ## Estabilidade e organização das preferências
 
@@ -126,7 +126,7 @@ retos, enquanto a superfície continua arredondada. A biblioteca é opcional e n
 ## Instalar
 
 ```bash
-gnome-extensions install --force dash-to-dock-soft@local_v20.zip
+gnome-extensions install --force dash-to-dock-soft@local_v21.zip
 ```
 
 Encerre a sessão e entre novamente para carregar a atualização. Depois:
@@ -150,7 +150,7 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=20
+make zip-file VERSION=21
 ```
 
 O teste de integração inicia um GNOME Shell 50 headless em D-Bus e diretórios de

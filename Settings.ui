@@ -803,8 +803,8 @@
                                 <property name="hexpand">1</property>
                                 <property name="adjustment">
                                   <object class="GtkAdjustment" id="dock_height_adjustment">
-                                    <property name="lower">-256</property>
-                                    <property name="upper">256</property>
+                                    <property name="lower">-12</property>
+                                    <property name="upper">12</property>
                                     <property name="step_increment">1</property>
                                     <property name="page_increment">8</property>
                                     <property name="value">0</property>
@@ -814,7 +814,7 @@
                               </object></child>
                             <child>
                               <object class="GtkLabel" id="dock_height_hint">
-                                <property name="label" translatable="yes">0: original position. Positive values move up; negative values move down, including beyond the screen edge.</property>
+                                <property name="label" translatable="yes">-12 to +12 px. 0: original position. Positive values move up; negative values move down.</property>
                                 <property name="xalign">0</property>
                                 <property name="wrap">1</property>
                                 <style><class name="dim-label"/></style>

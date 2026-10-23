@@ -71,13 +71,15 @@ settings.set_int('dock-shadow-intensity', 0);
 assert(shadow.get_value() === 0, 'Shadow setting updates slider');
 settings.reset('dock-shadow-intensity');
 assert(shadow.get_value() === 100, 'Shadow default restores Quick Settings');
-assert(height.get_value() === 0 && height.get_adjustment().upper === 256 && height.get_adjustment().lower === -256,
+assert(height.get_value() === 0 && height.get_adjustment().upper === 12 && height.get_adjustment().lower === -12,
     'Height defaults and range');
 assert(height.is_ancestor(controls.get('position_and_size')), 'Height control is in Position and size');
 height.set_value(120);
-assert(settings.get_int('dock-height') === 120, 'Height slider writes setting');
-settings.set_int('dock-height', -144);
-assert(height.get_value() === -144, 'Height setting updates slider');
+assert(settings.get_int('dock-height') === 12, 'Height slider clamps above +12 px');
+settings.set_int('dock-height', -12);
+assert(height.get_value() === -12, 'Height setting updates slider');
+height.set_value(-120);
+assert(settings.get_int('dock-height') === -12, 'Height slider clamps below -12 px');
 keepRadius.active = true;
 assert(settings.get_boolean('shell-menu-keep-dock-radius'), 'Keep-radius switch binding');
 assert(profile.active && !outline.sensitive && !corners.sensitive, 'Profile defaults and sensitivity');

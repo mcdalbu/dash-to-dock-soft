@@ -872,3 +872,6 @@ msgstr "Tamanho da sombra externa (%)"
 
 msgid "100% matches Quick Settings. Smaller values shrink the shadow; 200% doubles its size. 0% removes it."
 msgstr "100% usa o tamanho do Quick Settings. Valores menores diminuem a sombra; 200% duplica seu tamanho. 0% remove a sombra."
+
+msgid "-12 to +12 px. 0: original position. Positive values move up; negative values move down."
+msgstr "−12 a +12 px. 0: posição original. Valores positivos sobem; negativos descem."

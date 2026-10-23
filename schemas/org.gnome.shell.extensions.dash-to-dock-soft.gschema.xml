@@ -80,9 +80,9 @@
     </key>
     <key type="i" name="dock-height">
       <default>0</default>
-      <range min="-256" max="256"/>
+      <range min="-12" max="12"/>
       <summary>Dock vertical position offset in logical pixels</summary>
-      <description>Positive values move the dock up, negative values move it down. Zero keeps its original position. The dock can move beyond its monitor edges; its thickness and icon size are unchanged.</description>
+      <description>Adjust between -12 and +12 logical pixels. Positive values move the dock up, negative values move it down. Zero keeps its original position. The dock can move beyond its monitor edges; its thickness and icon size are unchanged.</description>
     </key>
     <key type="b" name="icon-shadow">
       <default>false</default>
