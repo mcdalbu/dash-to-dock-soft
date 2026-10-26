@@ -84,6 +84,10 @@ def test():
     output = ROOT / 'validation'
     output.mkdir(exist_ok=True)
     variant = 'shell-menu-native' if os.environ.get('SOFT_TEST_NATIVE') else 'shell-menu'
+    if os.environ.get('SOFT_TEST_SHADOW_EDGE'):
+        variant += '-shadow-edge'
+        if os.environ.get('SOFT_TEST_SHADOW_SIZE'):
+            variant += '-' + os.environ['SOFT_TEST_SHADOW_SIZE']
     if os.environ.get('SOFT_TEST_WITH_SHELL_SOFT'):
         variant += '-integrated'
     log = (output / f'{variant}-session.log').open('w')
@@ -119,7 +123,7 @@ def test():
                 raise RuntimeError('Shadow screenshot timed out')
             time.sleep(0.03)
 
-    def exterior_difference(on, off, box):
+    def exterior_difference(on, off, box, margin=24):
         images = [GdkPixbuf.Pixbuf.new_from_file(str(path)) for path in [on, off]]
         a, b = images
         assert a.get_width() == b.get_width() and a.get_height() == b.get_height()
@@ -127,8 +131,8 @@ def test():
         pixels = [image.get_pixels() for image in images]
         left, top, width, height = box
         count, maximum = 0, 0
-        for y in range(max(32, int(top)-24), min(a.get_height(), int(top+height)+24)):
-            for x in range(max(0, int(left)-24), min(a.get_width(), int(left+width)+24)):
+        for y in range(max(32, int(top)-margin), min(a.get_height(), int(top+height)+margin)):
+            for x in range(max(0, int(left)-margin), min(a.get_width(), int(left+width)+margin)):
                 if left <= x < left+width and top <= y < top+height:
                     continue
                 indices = [y*image.get_rowstride()+x*image.get_n_channels() for image in images]
@@ -166,6 +170,61 @@ def test():
             globalThis.background = dock.dash._background;
             globalThis.menu = Main.panel.statusArea.quickSettings.menu;
         })()''')
+        if os.environ.get('SOFT_TEST_SHADOW_EDGE'):
+            evaluate('manager.settings.set_boolean("autohide",false); '
+                     'manager.settings.set_boolean("intellihide",false); '
+                     'manager.settings.set_boolean("dock-fixed",false); '
+                     'manager.settings.set_boolean("shell-menu-style",true); '
+                     'manager.settings.set_boolean("dock-blur",false); '
+                     'menu.box.set_style("box-shadow: 0 3px 12px 4px rgba(0,0,0,0.6);");')
+            shadow_size = int(os.environ.get('SOFT_TEST_SHADOW_SIZE', '100'))
+            evaluate(f'manager.settings.set_int("dock-shadow-size",{shadow_size});')
+            results['shadow-size'] = shadow_size
+            results['shadow-edge'] = []
+            for scale in [1, 2]:
+                evaluate(f'imports.gi.St.ThemeContext.get_for_stage(global.stage).scale_factor={scale};')
+                for side in [0, 2]:
+                    evaluate(f'manager.settings.set_enum("dock-position",{side});')
+                    time.sleep(0.4)
+                    evaluate('globalThis.dock=manager.allDocks[0];dock._menuOpened=true; '
+                             'dock._ignoreHover=true;dock._removeAnimations();')
+                    for offset in [-12, 12]:
+                        evaluate(f'manager.settings.set_int("dock-height",{offset});')
+                        for slide in [0.5, 0.02, 0.001, 0]:
+                            evaluate(f'dock._slider.slideX={slide}; '
+                                     'dock.dash._background.opacity=255; '
+                                     'manager.settings.set_int("dock-shadow-intensity",100);')
+                            time.sleep(0.1)
+                            frame = evaluate('({box:[...dock._box.get_transformed_position(), '
+                                '...dock._box.get_transformed_size()],clip:dock._box.get_clip(), '
+                                'monitor:[dock._monitor.x,dock._monitor.y,dock._monitor.width,dock._monitor.height]})')
+                            label = f'{scale}-{side}-{offset}-{slide}'
+                            on = output / f'{variant}-{label}.png'
+                            off = Path(os.environ['XDG_RUNTIME_DIR']) / 'shadow-off.png'
+                            screenshot(on)
+                            # Keep the shadow geometry while removing its paint.
+                            evaluate('dock.dash._background.opacity=0;')
+                            time.sleep(0.1)
+                            screenshot(off)
+                            difference = exterior_difference(on, off, frame['box'], margin=128*scale)
+                            frame.update(scale=scale, side=side, offset=offset, slide=slide,
+                                         shadow=difference)
+                            results['shadow-edge'].append(frame)
+                            if slide:
+                                x, y, _, _ = frame['box']
+                                left, top, width, height = frame['clip']
+                                mx, my, mw, mh = frame['monitor']
+                                assert abs(x+left-mx)<=1 and abs(y+top-my)<=1
+                                assert abs(width-mw)<=1 and abs(height-mh)<=1
+                                if slide == 0.5:
+                                    assert difference['pixels'] > 10
+                                if slide == 0.001:
+                                    assert difference['pixels'] == 0, 'Shadow pops out at the final frame'
+                            else:
+                                assert difference['pixels'] == 0
+            results['passed'] = True
+            print(json.dumps(results, indent=2))
+            return
         check('own-identity', 'extension.uuid === "dash-to-dock-soft@local" && '
               'manager.settings.settings_schema.get_id() === "org.gnome.shell.extensions.dash-to-dock-soft"')
         check('profile-default', 'manager.settings.shellMenuStyle && manager.settings.dockBlur && '
@@ -475,6 +534,44 @@ def test():
         assert any(b > a for a,b in zip(fractions,fractions[1:])), 'No slide-in animation'
         assert any(b < a for a,b in zip(fractions,fractions[1:])), 'No slide-out animation'
         assert all(f['clip'][2] > f['size'][0] and f['clip'][3] > f['size'][1] for f in moving)
+        results['custom-height-autohide'] = []
+        for style in [False, True]:
+            evaluate(f'manager.settings.set_boolean("shell-menu-style",{str(style).lower()});')
+            for scale in [1, 2]:
+                evaluate(f'themeContext.scale_factor={scale};')
+                for side in [0, 2]:
+                    evaluate(f'manager.settings.set_enum("dock-position",{side});')
+                    time.sleep(0.4)
+                    evaluate('globalThis.dock=manager.allDocks[0];dock._menuOpened=true; '
+                             'dock._ignoreHover=true;dock._removeAnimations();')
+                    for offset in [-12, 0, 12]:
+                        evaluate(f'manager.settings.set_int("dock-height",{offset});dock._slider.slideX=1;')
+                        time.sleep(0.1)
+                        shown = evaluate('({y:dock._box.get_transformed_position()[1], '
+                                         'height:dock._box.height})')
+                        padding = evaluate('dock._slider._getSlidePaintPadding(dock._box.width,dock._box.height)')
+                        hidden_y = evaluate('dock._monitor.y' +
+                            (f'+dock._monitor.height+{padding}' if side == 2 else f'-{shown["height"]}-{padding}'))
+                        for slide in [0.1, 0.5, 0.9, 0]:
+                            evaluate(f'dock._slider.slideX={slide};')
+                            time.sleep(0.08)
+                            frame = evaluate('({y:dock._box.get_transformed_position()[1], '
+                                'clip:dock._box.get_clip(),monitorY:dock._monitor.y, '
+                                'monitorHeight:dock._monitor.height})')
+                            frame.update(style=style, scale=scale, side=side, offset=offset, slide=slide)
+                            results['custom-height-autohide'].append(frame)
+                            assert abs(frame['y']-(hidden_y+(shown['y']-hidden_y)*slide)) <= 1
+                            if style or offset:
+                                if slide:
+                                    assert abs(frame['y']+frame['clip'][1]-frame['monitorY']) <= 1
+                                    assert abs(frame['clip'][3]-frame['monitorHeight']) <= 1
+                                else:
+                                    assert frame['clip'][2]*frame['clip'][3] == 0
+        evaluate('themeContext.scale_factor=oldScale;manager.settings.set_int("dock-height",0); '
+                 'manager.settings.set_enum("dock-position",2); '
+                 'manager.settings.set_boolean("shell-menu-style",true);')
+        time.sleep(0.4)
+        evaluate('globalThis.dock=manager.allDocks[0];true;')
         evaluate('delete dock._menuOpened;manager.settings.set_boolean("dock-fixed",true);')
         time.sleep(0.6)
         time.sleep(1)

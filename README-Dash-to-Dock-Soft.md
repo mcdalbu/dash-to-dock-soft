@@ -87,7 +87,7 @@ O remoto `upstream` aponta para o projeto original.
 Na pasta que contém o ZIP:
 
 ```bash
-gnome-extensions install dash-to-dock-soft@local_v15.zip
+gnome-extensions install dash-to-dock-soft@local_v23.zip
 ```
 
 Encerre a sessão e entre novamente para que o GNOME Shell reconheça a nova extensão.
@@ -113,7 +113,8 @@ make
 make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
-make zip-file VERSION=15
+node tests/autohide-position.cjs
+make zip-file VERSION=23
 ```
 
 Para instalar a partir da árvore de código:
@@ -124,6 +125,41 @@ make install
 
 Também são suportados Dart Sass (`make SASS=dart`) e Ruby Sass
 (`make SASS=ruby`), conforme o Makefile original.
+
+## Correção da versão 23
+
+A verificação em pixels encontrou sombra ainda visível imediatamente antes
+do estado oculto da versão 22, quando o recorte zerado a apagava de uma vez.
+O percurso agora inclui a extensão de pintura calculada pelo próprio tema,
+levando também a sombra para além da borda real antes do último frame.
+Essa extensão acompanha o tamanho da sombra, a escala e o lado do dock.
+O recorte também usa uma transformação precisa, evitando erros de
+arredondamento ao converter coordenadas de atores parcialmente fora da tela.
+
+O teste gráfico dedicado compara capturas com e sem a pintura do fundo,
+mantendo a mesma geometria, para isolar os pixels da sombra. Verifica a sombra
+fora do contêiner durante o movimento, o recorte nas bordas do monitor e a
+ausência de sombra residual antes do estado totalmente oculto.
+
+```bash
+SOFT_TEST_SHADOW_EDGE=1 python3 tests/shell-menu-headless.py
+SOFT_TEST_SHADOW_EDGE=1 SOFT_TEST_SHADOW_SIZE=200 python3 tests/shell-menu-headless.py
+```
+
+## Correção da versão 22
+
+O autohide inclui o deslocamento da altura personalizada no percurso da
+animação. Ao ocultar, o dock chega à borda do monitor; ao reaparecer, parte
+dessa borda até a posição configurada. O recorte acompanha o monitor e deixa
+de criar uma linha de corte na posição elevada do dock, inclusive com o
+estilo de menu desligado. O estado totalmente oculto também recorta a sombra.
+O cálculo sincroniza a âncora do dock com a alocação atual para evitar que o
+recorte use a posição do frame anterior durante a animação.
+
+O teste `tests/autohide-position.cjs` cobre offsets positivos, negativos e
+zero, topo e base, escalas 1× e 2×, estilo de menu ligado e desligado e
+preservação do movimento dos docks laterais. A validação headless inclui
+essas combinações de altura em atores reais do GNOME Shell.
 
 ## Atualização da versão 15
 

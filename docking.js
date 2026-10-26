@@ -5,6 +5,7 @@ import {
     GLib,
     Gio,
     GObject,
+    Graphene,
     Meta,
     Shell,
     St,
@@ -181,9 +182,35 @@ const DashSlideContainer = GObject.registerClass({
             availHeight += yOffset;
         }
 
+        const verticalOffset = DockManager.settings.dockHeight *
+            St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        const hasVerticalSlideOffset = verticalOffset !== 0 &&
+            (this.side === St.Side.TOP || this.side === St.Side.BOTTOM);
+        if (hasVerticalSlideOffset) {
+            // The parent is positioned at the custom height. Gradually undo
+            // that offset while hiding so the child reaches the monitor edge.
+            const slideOffset = verticalOffset * (1 - this.slideX);
+            childBox.y1 += slideOffset;
+            childBox.y2 += slideOffset;
+        }
+
+        // Move the complete painted surface, including its outer shadow,
+        // beyond the edge before reaching the fully hidden state.
+        const paintPadding = this._getSlidePaintPadding(childWidth, childHeight);
+        const paintOffset = paintPadding * (1 - this.slideX);
+        if (this.side === St.Side.LEFT || this.side === St.Side.RIGHT) {
+            const offset = this.side === St.Side.LEFT ? -paintOffset : paintOffset;
+            childBox.x1 += offset;
+            childBox.x2 += offset;
+        } else {
+            const offset = this.side === St.Side.TOP ? -paintOffset : paintOffset;
+            childBox.y1 += offset;
+            childBox.y2 += offset;
+        }
+
         this.child.allocate(childBox);
 
-        if (DockManager.settings.shellMenuStyle) {
+        if (DockManager.settings.shellMenuStyle || hasVerticalSlideOffset || paintPadding > 0) {
             if (this.slideX === 0) {
                 // No shadow may spill from a completely hidden dock.
                 this.child.set_clip(0, 0, 0, 0);
@@ -192,20 +219,76 @@ const DashSlideContainer = GObject.registerClass({
             // The sliding allocation tracks input, not the shadow's paint
             // bounds. Clip painting at the monitor edge throughout the motion
             // so the shadow can travel with the dock without a final pop-in.
-            const monitor = Main.layoutManager.monitors[this.monitorIndex];
-            const [validStart, left, top] = this.child.transform_stage_point(monitor.x, monitor.y);
-            const [validEnd, right, bottom] = this.child.transform_stage_point(
-                monitor.x + monitor.width, monitor.y + monitor.height);
-            if (validStart && validEnd) {
-                this.child.set_clip(left, top, right - left, bottom - top);
+            // Size notifications can arrive after child allocation. Refresh
+            // the parent's anchor before transforming the monitor coordinates,
+            // otherwise the clip uses the previous animation frame's position.
+            const dock = this.get_parent();
+            if (this.side === St.Side.BOTTOM)
+                dock.translation_y = -dock.get_allocation_box().get_height();
+            else if (this.side === St.Side.RIGHT)
+                dock.translation_x = -dock.get_allocation_box().get_width();
+            if (this._updateMonitorClip())
                 return;
-            }
         }
 
-        // Retain the upstream viewport when the menu style is disabled or its
-        // monitor transform is not available yet during initial allocation.
+        // Retain the upstream viewport without a custom slide or menu style,
+        // or while the monitor transform is unavailable during initial layout.
         this.child.set_clip(-childBox.x1, -childBox.y1,
             -childBox.x1 + availWidth, -childBox.y1 + availHeight);
+    }
+
+    _updateMonitorClip() {
+        if (!this.child)
+            return false;
+        if (this.slideX === 0) {
+            this.child.set_clip(0, 0, 0, 0);
+            return true;
+        }
+        const monitor = Main.layoutManager.monitors[this.monitorIndex];
+        // transform_stage_point() unprojects rounded allocation vertices. A
+        // one-pixel rounding error can stretch the clip of a mostly hidden
+        // actor. Invert the precise local-to-stage basis instead.
+        const point = (x, y) => this.child.apply_relative_transform_to_point(global.stage,
+            new Graphene.Point3D({x, y, z: 0}));
+        const origin = point(0, 0);
+        const unitX = point(1, 0);
+        const unitY = point(0, 1);
+        const a = unitX.x - origin.x;
+        const b = unitX.y - origin.y;
+        const c = unitY.x - origin.x;
+        const d = unitY.y - origin.y;
+        const determinant = a * d - b * c;
+        if (!Number.isFinite(determinant) || Math.abs(determinant) < 1e-6)
+            return false;
+        const local = (x, y) => [
+            (d * (x - origin.x) - c * (y - origin.y)) / determinant,
+            (a * (y - origin.y) - b * (x - origin.x)) / determinant,
+        ];
+        const [left, top] = local(monitor.x, monitor.y);
+        const [right, bottom] = local(monitor.x + monitor.width, monitor.y + monitor.height);
+        this.child.set_clip(left, top, right - left, bottom - top);
+        return true;
+    }
+
+    _getSlidePaintPadding(width, height) {
+        const node = this.get_parent().dash._background.get_theme_node();
+        const shadow = node.get_box_shadow();
+        if (!shadow || shadow.inset)
+            return 0;
+
+        const allocation = new Clutter.ActorBox({x1: 0, y1: 0, x2: width, y2: height});
+        const paint = node.get_paint_box(allocation);
+        switch (this.side) {
+        case St.Side.LEFT:
+            return Math.max(0, paint.x2 - width);
+        case St.Side.RIGHT:
+            return Math.max(0, -paint.x1);
+        case St.Side.TOP:
+            return Math.max(0, paint.y2 - height);
+        case St.Side.BOTTOM:
+            return Math.max(0, -paint.y1);
+        }
+        return 0;
     }
 
     /**
@@ -1381,6 +1464,7 @@ const DockedDash = GObject.registerClass({
         const offset = DockManager.settings.dockHeight * scale;
         this.y -= offset;
         this._verticalOffset = offset;
+        this._slider.queue_relayout();
     }
 
     _updateVisibleDesktop() {
