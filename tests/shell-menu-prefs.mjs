@@ -38,6 +38,15 @@ const profile = controls.get('shell_menu_style_switch');
 const outline = controls.get('dock_outline_switch');
 const intensity = controls.get('dock_outline_intensity_scale');
 const corners = controls.get('dock_blur_corner_radius_scale');
+const brightness = controls.get('dock_blur_brightness_scale');
+assert(brightness.get_value() === 85 && brightness.get_adjustment().lower === 10 &&
+    brightness.get_adjustment().upper === 100 && brightness.sensitive, 'Blur brightness defaults and range');
+brightness.set_value(67);
+assert(settings.get_int('dock-blur-brightness') === 67, 'Brightness writes setting');
+settings.set_int('dock-blur-brightness', 75);
+assert(brightness.get_value() === 75, 'Brightness setting updates slider');
+settings.reset('dock-blur-brightness');
+assert(brightness.get_value() === 85, 'Brightness reset preserves previous rendering');
 const keepRadius = controls.get('shell_menu_keep_dock_radius_switch');
 const height = controls.get('dock_height_scale');
 const shadow = controls.get('dock_shadow_intensity_scale');
@@ -127,7 +136,7 @@ if (captureDir) {
                 ? ['dock_size_label', 'dock_height_label', 'builtin_theme_label6', 'builtin_theme_label7',
                     'dock_size_scale', 'dock_height_scale', 'icon_size_scale', 'preview_size_scale']
                 : ['dock_shadow_intensity_scale', 'dock_shadow_size_scale', 'dock_outline_intensity_scale',
-                    'icon_shadow_intensity_scale', 'dock_blur_radius_scale'];
+                    'icon_shadow_intensity_scale', 'dock_blur_radius_scale', 'dock_blur_brightness_scale'];
             const bounds = {};
             for (const id of ids) {
                 const [ok, rect] = controls.get(id).compute_bounds(window);

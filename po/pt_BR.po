@@ -875,3 +875,6 @@ msgstr "100% usa o tamanho do Quick Settings. Valores menores diminuem a sombra;
 
 msgid "-12 to +12 px. 0: original position. Positive values move up; negative values move down."
 msgstr "−12 a +12 px. 0: posição original. Valores positivos sobem; negativos descem."
+
+msgid "Blur brightness (%)"
+msgstr "Brilho do desfoque (%)"

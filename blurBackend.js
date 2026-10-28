@@ -34,3 +34,15 @@ export async function loadBlurBackend(native, gobject) {
     }
     return selectBlurBackend(compatibility, native, type => gobject.type_name(type));
 }
+
+// Shared appearance contract: radius is in logical pixels; opacity and
+// brightness are percentages. Keep this module identical in both extensions.
+export function opacityFraction(value, maximum = 100) {
+    return Math.max(0, Math.min(1, value / maximum));
+}
+
+export function applyBlurParameters(effect, radiusProperty, radius, scale, brightness = 85) {
+    const physicalRadius = radius * scale;
+    effect[radiusProperty] = radiusProperty === 'radius' ? physicalRadius : physicalRadius / 2;
+    effect.brightness = opacityFraction(brightness);
+}

@@ -87,7 +87,7 @@ O remoto `upstream` aponta para o projeto original.
 Na pasta que contém o ZIP:
 
 ```bash
-gnome-extensions install dash-to-dock-soft@local_v23.zip
+gnome-extensions install dash-to-dock-soft@local_v24.zip
 ```
 
 Encerre a sessão e entre novamente para que o GNOME Shell reconheça a nova extensão.
@@ -114,7 +114,7 @@ make check
 node tests/dock-effects.cjs
 node tests/dock-redraw-recovery.cjs
 node tests/autohide-position.cjs
-make zip-file VERSION=23
+make zip-file VERSION=24
 ```
 
 Para instalar a partir da árvore de código:
@@ -413,3 +413,18 @@ GNU GPL versão 2 ou posterior; veja [COPYING](COPYING).
 Relate problemas específicos das novas opções ao mantenedor deste fork, junto
 com a versão do GNOME Shell, o tema e a configuração usada. Não encaminhe
 problemas exclusivos deste fork ao projeto original.
+
+## Escala comum de aparência (versão 24)
+
+O cálculo de blur e percentuais em `blurBackend.js` é idêntico ao do Gnome Shell
+Soft 4. Blur 24 significa raio de 24 pixels lógicos, ajustado pela escala do
+Shell (sigma 12 nos backends antigos). Em transparência fixa, opacidade 67%
+corresponde a alfa 0,67 e transparência 33%, preservando textos e ícones.
+Os modos de transparência padrão e dinâmico mantêm seus comportamentos próprios.
+
+O novo controle **Blur brightness (%)** ajusta o brilho do desfoque de 10 a 100%,
+na mesma escala do Gnome Shell Soft; o padrão permanece em 85%.
+Configurações das duas extensões continuam independentes. Para comparar o
+resultado, use os mesmos raio, brilho e opacidade, além da mesma cor de fundo.
+O conteúdo amostrado e as dimensões das superfícies podem produzir diferenças
+visuais mesmo com parâmetros iguais.

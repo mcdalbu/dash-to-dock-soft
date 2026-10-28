@@ -135,6 +135,12 @@
       <summary>Dock blur radius</summary>
       <description>Blur radius in logical pixels, adjusted for the display scale.</description>
     </key>
+    <key type="i" name="dock-blur-brightness">
+      <default>85</default>
+      <range min="10" max="100"/>
+      <summary>Blur brightness (%)</summary>
+      <description>Brightness of the blurred backdrop, using the same percentage as Gnome Shell Soft.</description>
+    </key>
     <key type="i" name="dock-blur-corner-radius">
       <default>24</default>
       <range min="0" max="100"/>

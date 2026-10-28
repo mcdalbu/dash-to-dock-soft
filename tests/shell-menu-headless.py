@@ -32,6 +32,9 @@ def stage():
         if os.environ.get('SOFT_TEST_NATIVE'):
             backend = extension / 'blurBackend.js'
             backend.write_text(backend.read_text().replace('gi://Blur', 'gi://SoftTestMissingBlur'))
+            if os.environ.get('SOFT_TEST_WITH_SHELL_SOFT'):
+                backend = extension.parent / 'gnome-shell-soft@local/blurBackend.js'
+                backend.write_text(backend.read_text().replace('gi://Blur', 'gi://SoftTestMissingBlur'))
         helper = extension.parent / 'soft-test-helper@local'
         helper.mkdir()
         (helper / 'metadata.json').write_text(json.dumps({
@@ -240,6 +243,35 @@ def test():
                  'shadow:s?{x:s.xoffset,y:s.yoffset,blur:s.blur,spread:s.spread,color:c(s.color),inset:s.inset}:null}; };')
         evaluate('globalThis.fillValues=actor=>{const c=actor.get_theme_node().get_background_color(); '
                  'return [c.red,c.green,c.blue,c.alpha];};')
+        if os.environ.get('SOFT_TEST_WITH_SHELL_SOFT'):
+            evaluate('globalThis.soft = Main.extensionManager.lookup("gnome-shell-soft@local").stateObj; '
+                     'globalThis.dock = manager.allDocks[0]; globalThis.background = dock.dash._background; '
+                     'manager.settings.set_enum("transparency-mode",1); '
+                     'manager.settings.set_int("dock-blur-radius",24); '
+                     'manager.settings.set_int("dock-blur-brightness",67); '
+                     'manager.settings.set_double("background-opacity",0.67); '
+                     'soft._settings.set_int("blur-radius",24); '
+                     'soft._settings.set_int("brightness",67); soft._settings.set_int("opacity",67);')
+            time.sleep(0.5)
+            for key in ['notifications', 'quick-settings']:
+                evaluate(f'globalThis.alignedSurface = soft._surfaces.get("{key}"); alignedSurface.menu.open();')
+                time.sleep(0.4)
+                check(f'{key}-appearance-24-67', '''(() => {
+                    const d = dock._themeManager, s = alignedSurface;
+                    return d._blurRadiusProperty === s._radiusProperty &&
+                        d._blurEffect[d._blurRadiusProperty] === s._effect[s._radiusProperty] &&
+                        s._effect[s._radiusProperty] === (s._radiusProperty === 'radius' ? 24 : 12) * s._context.scale_factor &&
+                        Math.abs(d._blurEffect.brightness - 0.67) < 0.0001 &&
+                        d._blurEffect.brightness === s._effect.brightness &&
+                        fillValues(background)[3] === fillValues(s.menu.box)[3] &&
+                        Math.abs(fillValues(background)[3] - 171) <= 1;
+                })()''')
+                evaluate('alignedSurface.menu.close();')
+                time.sleep(0.3)
+            evaluate('for (const k of ["dock-blur-radius","dock-blur-brightness","background-opacity"]) '
+                     'manager.settings.reset(k); '
+                     'for (const k of ["blur-radius","brightness","opacity"]) soft._settings.reset(k);')
+            time.sleep(0.4)
         for theme in ['dark','light']:
             evaluate(f'globalThis.interfaceSettings = new Gio.Settings({{schema_id:"org.gnome.desktop.interface"}}); '
                      f'interfaceSettings.set_string("color-scheme","prefer-{theme}");')

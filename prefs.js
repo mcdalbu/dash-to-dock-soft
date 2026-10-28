@@ -224,7 +224,7 @@ const DockSettings = GObject.registerClass({
         const appearanceOrder = ['shell_menu_style_switch', 'shell_menu_colors_switch',
             'shell_menu_keep_dock_radius_switch',
             'dock_shadow_intensity_scale', 'dock_shadow_size_scale',
-            'dock_blur_switch', 'dock_blur_radius_scale',
+            'dock_blur_switch', 'dock_blur_radius_scale', 'dock_blur_brightness_scale',
             'dock_blur_corner_radius_scale', 'dock_outline_switch', 'dock_outline_intensity_scale',
             'icon_shadow_switch', 'icon_shadow_intensity_scale', 'icon_shadow_offset_x_scale',
             'icon_shadow_offset_y_scale', 'icon_shadow_blur_scale'];
@@ -1144,6 +1144,15 @@ const DockSettings = GObject.registerClass({
             Gio.SettingsBindFlags.DEFAULT);
         this._settings.bind('dock-blur',
             this._builder.get_object('dock_blur_radius_scale'),
+            'sensitive',
+            Gio.SettingsBindFlags.GET);
+
+        this._settings.bind('dock-blur-brightness',
+            this._builder.get_object('dock_blur_brightness_adjustment'),
+            'value',
+            Gio.SettingsBindFlags.DEFAULT);
+        this._settings.bind('dock-blur',
+            this._builder.get_object('dock_blur_brightness_scale'),
             'sensitive',
             Gio.SettingsBindFlags.GET);
 

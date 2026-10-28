@@ -1,0 +1,254 @@
+{
+  "environment": "GNOME Shell 50, isolated headless Wayland sessions",
+  "dock_version": 24,
+  "shell_version": 4,
+  "checks": {
+    "gnome50-results.json": {
+      "backend": {
+        "type": "Blur_BlurEffect",
+        "corners": true,
+        "radiusProperty": "radius"
+      },
+      "notifications-opening-frames": [
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        }
+      ],
+      "quick-settings-opening-frames": [
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        }
+      ],
+      "idle-frames-open": 0,
+      "preferences": {
+        "passed": true,
+        "output": "Preferences: controls, defaults, bidirectional bindings and reset passed"
+      },
+      "passed": true
+    },
+    "gnome50-native-results.json": {
+      "backend": {
+        "type": "Shell_BlurEffect",
+        "corners": false,
+        "radiusProperty": "radius"
+      },
+      "notifications-opening-frames": [
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        }
+      ],
+      "quick-settings-opening-frames": [
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        },
+        {
+          "mapped": true,
+          "aligned": true,
+          "opacity": 255
+        }
+      ],
+      "idle-frames-open": 0,
+      "preferences": {
+        "passed": true,
+        "output": "Preferences: controls, defaults, bidirectional bindings and reset passed"
+      },
+      "passed": true
+    },
+    "shell-menu-integrated-results.json": {
+      "notifications-appearance-24-67": true,
+      "quick-settings-appearance-24-67": true,
+      "preferences": {
+        "passed": true,
+        "output": "Preferences: Shell colors, saved custom color, height, radius, shadow and dependent controls passed"
+      },
+      "passed": true
+    },
+    "shell-menu-native-integrated-results.json": {
+      "notifications-appearance-24-67": true,
+      "quick-settings-appearance-24-67": true,
+      "preferences": {
+        "passed": true,
+        "output": "Preferences: Shell colors, saved custom color, height, radius, shadow and dependent controls passed"
+      },
+      "passed": true
+    }
+  }
+}

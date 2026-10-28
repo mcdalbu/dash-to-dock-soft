@@ -35,7 +35,7 @@ assert(surfaceSandbox.surfaceStyle({...shadowNode, get_box_shadow: () => null}, 
 const settings = {applyCustomTheme: false, customThemeShrink: false,
     runningIndicatorStyle: 0, forceStraightCorner: false,
     iconShadow: false, iconShadowIntensity: 24, iconShadowOffsetX: 0, iconShadowOffsetY: 2, iconShadowBlur: 4,
-    dockOutline: false, dockOutlineIntensity: 15, dockBlur: false, dockBlurRadius: 30, dockBlurCornerRadius: 24};
+    dockOutline: false, dockOutlineIntensity: 15, dockBlur: false, dockBlurRadius: 30, dockBlurBrightness: 85, dockBlurCornerRadius: 24};
 function createTheme() {
     return {styles: new Map(), loads: 0,
         load_stylesheet(file) {this.styles.set(file, file.content); this.loads++; this.onLoad?.();},
@@ -191,6 +191,23 @@ drawFlags = 0;
 const backendSource = fs.readFileSync(path.join(__dirname, '../blurBackend.js'), 'utf8')
     .replace(/\bexport /g, '');
 vm.runInContext(backendSource + '\nthis.selectBlurBackend = selectBlurBackend;', sandbox);
+// Numeric appearance contract, including the user's 24 / 67 example.
+const peerBackend = path.join(__dirname, '../../gnome-shell-soft/blurBackend.js');
+if (fs.existsSync(peerBackend))
+    assert.equal(fs.readFileSync(peerBackend, 'utf8'),
+        fs.readFileSync(path.join(__dirname, '../blurBackend.js'), 'utf8'));
+for (const scale of [1, 2]) {
+    for (const radiusProperty of ['radius', 'sigma']) {
+        for (const radius of [1, 24, 47, 100]) {
+            const effect = {};
+            sandbox.applyBlurParameters(effect, radiusProperty, radius, scale, 67);
+            assert.equal(effect[radiusProperty], radius * scale / (radiusProperty === 'sigma' ? 2 : 1));
+            assert.equal(effect.brightness, 0.67);
+        }
+    }
+}
+for (const percent of [0, 55, 67, 100])
+    assert.equal(sandbox.opacityFraction(percent), sandbox.opacityFraction(percent / 100, 1));
 const native = sandbox.Shell;
 const compatibility = {BlurEffect: class RoundedEffect extends MockBlurEffect {},
     BlurMode: {BACKGROUND: 42}};
@@ -348,10 +365,12 @@ const effect = a.manager._blurEffect;
 const count = effectCount;
 context.scale_factor = 2;
 settings.dockBlurRadius = 44;
+settings.dockBlurBrightness = 67;
 a.manager._updateBlur();
 assert.equal(a.manager._blurEffect, effect);
 assert.equal(effectCount, count);
 assert.equal(effect.radius, 88);
+assert.equal(effect.brightness, 0.67);
 assert.equal(effect.mode, sandbox.Shell.BlurMode.BACKGROUND);
 
 // Each dock owns its own effect; disabling or destroying one cannot remove another.

@@ -13,7 +13,7 @@ import {
 
 import {Main} from './dependencies/shell/ui.js';
 import {LoginManager} from './dependencies/shell/misc.js';
-import {loadBlurBackend} from './blurBackend.js';
+import {loadBlurBackend, applyBlurParameters, opacityFraction} from './blurBackend.js';
 import {BlurRedrawGuard} from './blurRedrawGuard.js';
 import {shellMenuSurfaceStyle} from './shellMenuStyle.js';
 
@@ -88,7 +88,8 @@ function applyDockSurfaceStyle(dock) {
     if (menu && settings.shellMenuColors) {
         const color = menu.get_theme_node().get_background_color();
         const alpha = settings.transparencyMode === TransparencyMode.FIXED
-            ? settings.backgroundOpacity : background.get_theme_node().get_background_color().alpha / 255;
+            ? opacityFraction(settings.backgroundOpacity, 1)
+            : background.get_theme_node().get_background_color().alpha / 255;
         style += `background-color: rgba(${color.red}, ${color.green}, ${color.blue}, ${alpha});`;
     }
     if (settings.dockBlur || menu && settings.shellMenuColors)
@@ -243,7 +244,7 @@ export class ThemeManager {
     }
 
     _updateDashOpacity() {
-        const newAlpha = Docking.DockManager.settings.backgroundOpacity;
+        const newAlpha = opacityFraction(Docking.DockManager.settings.backgroundOpacity, 1);
 
         const [backgroundColor, borderColor] = this._getDefaultColors();
 
@@ -328,7 +329,7 @@ export class ThemeManager {
             }
 
             if (settings.transparencyMode === TransparencyMode.FIXED) {
-                newAlpha = settings.backgroundOpacity;
+                newAlpha = opacityFraction(settings.backgroundOpacity, 1);
                 this._customizedBackground =
                     `rgba(${color.red}, ${color.green}, ${color.blue}, ${newAlpha})`;
             } else {
@@ -695,9 +696,8 @@ export class ThemeManager {
         }
 
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
-        const radius = settings.dockBlurRadius * scale;
-        this._blurEffect[this._blurRadiusProperty] =
-            this._blurRadiusProperty === 'radius' ? radius : radius / 2;
+        applyBlurParameters(this._blurEffect, this._blurRadiusProperty,
+            settings.dockBlurRadius, scale, settings.dockBlurBrightness);
         if (this._blurHasCornerRadius) {
             this._blurEffect.corner_radius = settings.shellMenuStyle && getShellMenuBox()
                 ? this._dash._background.get_theme_node().get_border_radius(St.Corner.TOPLEFT)
@@ -899,6 +899,7 @@ export class ThemeManager {
             'dock-outline-intensity',
             'dock-blur',
             'dock-blur-radius',
+            'dock-blur-brightness',
             'dock-blur-corner-radius',
             'custom-theme-running-dots',
             'extend-height',
